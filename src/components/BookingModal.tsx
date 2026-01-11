@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Calendar, Clock, Users, MapPin, Check, Sparkles } from "lucide-react";
+import { X, Calendar, Clock, Users, Check, Sparkles } from "lucide-react";
 import { ScheduleSlot, DanceStyle } from "@/data/types";
 import { schedule, weekDays } from "@/data/schedule";
 import { formatTime, getAvailabilityMessage } from "@/lib/utils";
@@ -426,10 +426,10 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                       transition={{ delay: 0.6 }}
                     >
                       <h3 className="text-3xl font-display font-bold text-charcoal mb-4">
-                        You're All Set! <Sparkles className="inline-block w-8 h-8 text-terracotta" />
+                        You&apos;re All Set! <Sparkles className="inline-block w-8 h-8 text-terracotta" />
                       </h3>
                       <p className="text-lg text-soft-charcoal mb-8">
-                        Your class has been booked successfully. We've sent a confirmation email to <strong>{formData.email}</strong>
+                        Your class has been booked successfully. We&apos;ve sent a confirmation email to <strong>{formData.email}</strong>
                       </p>
                       
                       <motion.button

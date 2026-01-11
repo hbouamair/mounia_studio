@@ -2,17 +2,29 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Play, Sparkles, TrendingUp } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
   });
   
-  const y = useTransform(scrollYProgress, [0, 1], [0, 300]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  // Parallax only on desktop
+  const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   
   return (
     <section
@@ -58,7 +70,11 @@ export default function Hero() {
       {/* Content */}
       <motion.div
         className="relative z-10 min-h-screen flex items-center"
-        style={{ y, opacity }}
+        style={{ 
+          // Disable parallax on mobile, enable on desktop
+          y: isMobile ? 0 : y,
+          opacity: isMobile ? 1 : opacity
+        }}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-32 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
@@ -73,7 +89,7 @@ export default function Hero() {
               >
                 <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-terracotta/10 to-deep-violet/10 border border-terracotta/20">
                   <Sparkles className="w-4 h-4 text-terracotta" />
-                  <span className="text-sm font-semibold text-charcoal">San Francisco's Premier Studio</span>
+                  <span className="text-sm font-semibold text-charcoal">San Francisco&apos;s Premier Studio</span>
                   <div className="w-2 h-2 rounded-full bg-terracotta animate-pulse" />
                 </div>
               </motion.div>
@@ -179,7 +195,7 @@ export default function Hero() {
               </motion.div>
             </div>
             
-            {/* Right Content - Visual Elements */}
+            {/* Right Content - Studio Image */}
             <div className="lg:col-span-5 relative">
               <motion.div
                 className="relative"
@@ -187,22 +203,29 @@ export default function Hero() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 1, delay: 0.6 }}
               >
-                {/* Main card */}
-                <div className="relative aspect-[4/5] rounded-[3rem] bg-gradient-to-br from-charcoal via-charcoal/95 to-charcoal overflow-hidden shadow-2xl">
-                  {/* Gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-terracotta/20 via-transparent to-deep-violet/20" />
+                {/* Studio Image Card */}
+                <div className="relative aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl">
+                  {/* Studio Image */}
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{
+                      backgroundImage: 'url("https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200&q=80")'
+                    }}
+                  >
+                    {/* Gradient overlay for text readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/40 to-transparent" />
+                  </div>
                   
-                  {/* Content inside card */}
-                  <div className="relative h-full flex flex-col justify-end p-8">
+                  {/* Content overlay */}
+                  <div className="relative h-full flex flex-col justify-end p-6 sm:p-8">
                     <motion.div
                       animate={{ y: [0, -10, 0] }}
                       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     >
-                      <div className="text-6xl mb-4">💃</div>
-                      <h3 className="text-2xl font-display font-bold text-cream mb-2">
+                      <h3 className="text-2xl sm:text-3xl font-display font-bold text-cream mb-2">
                         Start Today
                       </h3>
-                      <p className="text-cream/70 text-sm">
+                      <p className="text-cream/80 text-sm sm:text-base">
                         First class is always free for new members
                       </p>
                     </motion.div>
@@ -210,7 +233,7 @@ export default function Hero() {
                   
                   {/* Floating badge */}
                   <motion.div
-                    className="absolute top-6 right-6 px-4 py-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg"
+                    className="absolute top-6 right-6 px-4 py-2 rounded-full bg-white/95 backdrop-blur-sm shadow-lg"
                     animate={{ y: [0, -5, 0] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                   >
@@ -219,6 +242,9 @@ export default function Hero() {
                       <span className="text-xs font-bold text-charcoal">Top Rated</span>
                     </div>
                   </motion.div>
+                  
+                  {/* Decorative corner accent */}
+                  <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-terracotta/30 to-transparent" />
                 </div>
                 
                 {/* Floating elements */}

@@ -60,7 +60,7 @@ export default function Contact() {
             transition={{ duration: 0.6, delay: 0.4 }}
           >
             Come experience our beautiful space and meet our community.
-            <span className="block mt-2 text-terracotta font-medium">We can't wait to dance with you!</span>
+            <span className="block mt-2 text-terracotta font-medium">We can&apos;t wait to dance with you!</span>
           </motion.p>
         </motion.div>
         
