@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-body: 'DM Sans', sans-serif;
+  --font-sora: 'Sora', sans-serif;
+  --font-nav: 'Outfit', sans-serif;
+}
+
+body {
+  @apply bg-cream text-charcoal;
+  font-family: var(--font-body);
+  background: linear-gradient(180deg, #FDFBF7 0%, #FFFFFF 50%, #FDFBF7 100%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .font-display {
+    font-family: var(--font-sora);
+    letter-spacing: -0.02em;
+  }
+  
+  .font-body {
+    font-family: var(--font-body);
+    letter-spacing: -0.01em;
+  }
+  
+  .font-nav {
+    font-family: var(--font-nav);
+    letter-spacing: -0.005em;
+  }
+  
+  .glass-morphism {
+    background: rgba(253, 251, 247, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  .gradient-soft {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(253, 251, 247, 0.95) 100%);
+  }
+  
+  .skeu-card {
+    @apply bg-white rounded-4xl shadow-skeu-md;
+    background: linear-gradient(145deg, #ffffff 0%, #fdfbf7 100%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+  }
+  
+  .skeu-button {
+    @apply rounded-full shadow-skeu-sm transition-all duration-200;
+    background: linear-gradient(145deg, #ffffff 0%, #f8f6f2 100%);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .skeu-button:hover {
+    @apply shadow-skeu-md;
+    transform: translateY(-2px);
+  }
+  
+  .skeu-button:active {
+    @apply shadow-inner-soft;
+    transform: translateY(0) scale(0.98);
+  }
+  
+  .dough-button {
+    @apply relative overflow-hidden;
+    transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  .dough-button:active {
+    transform: scale(0.95);
+  }
+  
+  .scroll-fade {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+  }
+  
+  .animate-gradient-slow {
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease infinite;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar - Thin & Modern */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d97757;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c66647;
+}
+
+/* Selection color */
+::selection {
+  background-color: #d97757;
+  color: white;
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid #d97757;
+  outline-offset: 2px;
+}
