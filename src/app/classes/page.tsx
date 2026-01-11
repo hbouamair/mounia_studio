@@ -2,15 +2,11 @@
 
 import { useState } from "react";
 import Navigation from "@/components/Navigation";
-import Hero from "@/components/Hero";
-import WhyChooseUs from "@/components/WhyChooseUs";
-import HowItWorks from "@/components/HowItWorks";
-import FormulesPreview from "@/components/FormulesPreview";
-import Schedule from "@/components/Schedule";
+import ClassesGrid from "@/components/ClassesGrid";
 import BookingModal from "@/components/BookingModal";
 import Footer from "@/components/Footer";
 
-export default function Home() {
+export default function ClassesPage() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [preselectedClassId, setPreselectedClassId] = useState<string | undefined>(undefined);
   
@@ -29,13 +25,9 @@ export default function Home() {
       {/* Navigation */}
       <Navigation />
       
-      {/* Main Content - Homepage Optimized */}
+      {/* Main Content */}
       <main className="relative">
-        <Hero />
-        <WhyChooseUs />
-        <HowItWorks />
-        <FormulesPreview />
-        <Schedule onOpenBooking={() => handleBookClass()} />
+        <ClassesGrid onBookClass={handleBookClass} />
       </main>
       
       {/* Footer */}
@@ -50,3 +42,4 @@ export default function Home() {
     </>
   );
 }
+

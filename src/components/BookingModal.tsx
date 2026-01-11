@@ -132,7 +132,17 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                     e.stopPropagation();
                     handleClose();
                   }}
-                  className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-terracotta to-[#c66647] text-white hover:from-[#c66647] hover:to-terracotta flex items-center justify-center cursor-pointer transition-all flex-shrink-0 shadow-lg hover:shadow-xl z-[220]"
+                  className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full text-white flex items-center justify-center cursor-pointer transition-all flex-shrink-0 shadow-lg hover:shadow-xl z-[220]"
+                  style={{ 
+                    background: 'linear-gradient(to right, #1E3A5F, #182E4C)',
+                    color: '#ffffff'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #182E4C, #1E3A5F)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #1E3A5F, #182E4C)';
+                  }}
                   whileHover={{ scale: 1.15, rotate: 90 }}
                   whileTap={{ scale: 0.85 }}
                   aria-label="Close modal"
@@ -158,7 +168,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                           onClick={() => setFilterStyle(style)}
                           className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-interactive ${
                             filterStyle === style
-                              ? "bg-terracotta text-white shadow-skeu-sm"
+                              ? "bg-primary-500 text-white shadow-skeu-sm"
                               : "bg-white text-soft-charcoal shadow-skeu-sm hover:shadow-skeu-md"
                           }`}
                           whileHover={{ scale: 1.05 }}
@@ -182,11 +192,15 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                             disabled={!hasClasses}
                             className={`p-2 sm:p-3 md:p-4 rounded-lg sm:rounded-xl text-center transition-all cursor-interactive min-h-[60px] sm:min-h-[70px] flex flex-col items-center justify-center ${
                               selectedDay === day
-                                ? "bg-gradient-to-br from-terracotta to-[#c66647] text-white shadow-md"
+                                ? "text-white shadow-md"
                                 : hasClasses
-                                ? "bg-cream border border-charcoal/10 text-charcoal hover:border-terracotta/30 hover:bg-terracotta/5"
+                                ? "bg-cream border border-charcoal/10 text-charcoal hover:border-primary-500/30 hover:bg-primary-500/5"
                                 : "bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-200"
                             }`}
+                            style={selectedDay === day ? {
+                              background: 'linear-gradient(to bottom right, #1E3A5F, #182E4C)',
+                              color: '#ffffff'
+                            } : undefined}
                             whileHover={hasClasses ? { scale: 1.03 } : {}}
                             whileTap={hasClasses ? { scale: 0.97 } : {}}
                           >
@@ -214,7 +228,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                             <motion.div
                               key={slot.id}
                               className={`bg-white border border-charcoal/10 rounded-2xl p-4 sm:p-6 cursor-pointer transition-all mb-3 ${
-                                isFull ? "opacity-50" : "hover:border-terracotta/30 hover:shadow-md"
+                                isFull ? "opacity-50" : "hover:border-primary-500/30 hover:shadow-md"
                               }`}
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -237,12 +251,12 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                                       
                                       <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-soft-charcoal">
                                         <div className="flex items-center gap-1.5">
-                                          <Clock className="w-3.5 h-3.5 text-terracotta" />
+                                          <Clock className="w-3.5 h-3.5 text-primary-500" />
                                           <span className="whitespace-nowrap font-medium">{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</span>
                                         </div>
                                         
                                         <div className="flex items-center gap-1.5">
-                                          <Users className="w-3.5 h-3.5 text-terracotta" />
+                                          <Users className="w-3.5 h-3.5 text-primary-500" />
                                           <span className="truncate font-medium">{slot.instructor}</span>
                                         </div>
                                       </div>
@@ -266,10 +280,13 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                                         e.stopPropagation();
                                         handleBookSlot(slot);
                                       }}
-                                      className="w-full px-4 py-2.5 bg-gradient-to-r from-terracotta to-[#c66647] text-white rounded-lg font-semibold text-sm shadow-sm"
+                                      className="w-full px-4 py-2.5 text-white rounded-lg font-semibold text-sm shadow-sm"
+                                      style={{ 
+                                        background: 'linear-gradient(to right, #1E3A5F, #182E4C)',
+                                        color: '#ffffff'
+                                      }}
                                       whileHover={{ scale: 1.02 }}
                                       whileTap={{ scale: 0.98 }}
-                                      style={{ color: '#ffffff' }}
                                     >
                                       Book Now
                                     </motion.button>
@@ -298,7 +315,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="flex items-start gap-3">
-                          <Calendar className="w-5 h-5 text-terracotta mt-0.5 flex-shrink-0" />
+                          <Calendar className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" />
                           <div className="min-w-0">
                             <div className="text-xs sm:text-sm text-soft-charcoal mb-1">Date & Time</div>
                             <div className="font-semibold text-sm sm:text-base break-words">{selectedSlot.day}, {formatTime(selectedSlot.startTime)}</div>
@@ -306,7 +323,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                         </div>
                         
                         <div className="flex items-start gap-3">
-                          <Users className="w-5 h-5 text-terracotta mt-0.5 flex-shrink-0" />
+                          <Users className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" />
                           <div className="min-w-0">
                             <div className="text-xs sm:text-sm text-soft-charcoal mb-1">Instructor</div>
                             <div className="font-semibold text-sm sm:text-base break-words">{selectedSlot.instructor}</div>
@@ -326,7 +343,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                           required
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-terracotta outline-none transition-all bg-white text-base"
+                          className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary-500 outline-none transition-all bg-white text-base"
                           placeholder="Jane Doe"
                         />
                       </div>
@@ -340,7 +357,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                           required
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-terracotta outline-none transition-all bg-white text-base"
+                          className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary-500 outline-none transition-all bg-white text-base"
                           placeholder="jane@example.com"
                         />
                       </div>
@@ -354,7 +371,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                           required
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-terracotta outline-none transition-all bg-white text-base"
+                          className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary-500 outline-none transition-all bg-white text-base"
                           placeholder="(555) 123-4567"
                         />
                       </div>
@@ -366,7 +383,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                         <textarea
                           value={formData.specialRequests}
                           onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
-                          className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-terracotta outline-none transition-all bg-white resize-none text-base"
+                          className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-primary-500 outline-none transition-all bg-white resize-none text-base"
                           placeholder="Any special requirements or notes..."
                           rows={3}
                         />
@@ -376,7 +393,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                         <motion.button
                           type="button"
                           onClick={() => setBookingStep("schedule")}
-                          className="flex-1 py-3.5 px-6 rounded-xl border-2 border-gray-300 text-charcoal font-semibold hover:border-terracotta hover:bg-terracotta/5 transition-all cursor-interactive bg-white"
+                          className="flex-1 py-3.5 px-6 rounded-xl border-2 border-gray-300 text-charcoal font-semibold hover:border-primary-500 hover:bg-primary-500/5 transition-all cursor-interactive bg-white"
                           whileHover={{ scale: 1.01 }}
                           whileTap={{ scale: 0.99 }}
                         >
@@ -385,10 +402,13 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                         
                         <motion.button
                           type="submit"
-                          className="flex-1 py-3.5 px-6 bg-gradient-to-r from-terracotta to-[#c66647] text-white rounded-xl font-semibold shadow-md cursor-interactive"
+                          className="flex-1 py-3.5 px-6 text-white rounded-xl font-semibold shadow-md cursor-interactive"
+                          style={{ 
+                            background: 'linear-gradient(to right, #1E3A5F, #182E4C)',
+                            color: '#ffffff'
+                          }}
                           whileHover={{ scale: 1.01 }}
                           whileTap={{ scale: 0.99 }}
-                          style={{ color: '#ffffff' }}
                         >
                           Confirm Booking
                         </motion.button>
@@ -426,7 +446,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                       transition={{ delay: 0.6 }}
                     >
                       <h3 className="text-3xl font-display font-bold text-charcoal mb-4">
-                        You&apos;re All Set! <Sparkles className="inline-block w-8 h-8 text-terracotta" />
+                        You&apos;re All Set! <Sparkles className="inline-block w-8 h-8 text-primary-500" />
                       </h3>
                       <p className="text-lg text-soft-charcoal mb-8">
                         Your class has been booked successfully. We&apos;ve sent a confirmation email to <strong>{formData.email}</strong>
@@ -434,7 +454,11 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                       
                       <motion.button
                         onClick={handleClose}
-                        className="px-10 py-4 bg-gradient-to-r from-terracotta to-[#c66647] text-white rounded-full font-semibold shadow-skeu-md cursor-interactive"
+                        className="px-10 py-4 text-white rounded-full font-semibold shadow-skeu-md cursor-interactive"
+                        style={{ 
+                          background: 'linear-gradient(to right, #1E3A5F, #182E4C)',
+                          color: '#ffffff'
+                        }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >

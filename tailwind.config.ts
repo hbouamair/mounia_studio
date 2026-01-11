@@ -11,11 +11,68 @@ const config: Config = {
     extend: {
       colors: {
         cream: "#FDFBF7",
-        charcoal: "#2C2C2C",
+        charcoal: "#1A1A1A",
         "soft-charcoal": "#4A4A4A",
-        terracotta: "#D97757",
-        "deep-violet": "#6B4E97",
-        "energy-accent": "#D97757", // Default to terracotta
+        // Primary color palette - Deep Ocean Blue (Elegant & Professional)
+        primary: {
+          DEFAULT: "#1E3A5F",
+          50: "#E8EDF3",
+          100: "#D1DBE7",
+          200: "#A3B7CF",
+          300: "#7593B7",
+          400: "#476F9F",
+          500: "#1E3A5F", // Main color - Deep Ocean Blue
+          600: "#182E4C",
+          700: "#122239",
+          800: "#0C1626",
+          900: "#060B13",
+        },
+        // Secondary - Vibrant Teal (Energy & Movement)
+        secondary: {
+          DEFAULT: "#2A9D8F",
+          50: "#E8F5F3",
+          100: "#D1EBE7",
+          200: "#A3D7CF",
+          300: "#75C3B7",
+          400: "#47AF9F",
+          500: "#2A9D8F", // Vibrant Teal
+          600: "#227E72",
+          700: "#1A5F56",
+          800: "#124039",
+          900: "#0A211D",
+        },
+        // Accent - Warm Coral (Passion & Energy)
+        accent: {
+          DEFAULT: "#E76F51",
+          50: "#FDF3F1",
+          100: "#FBE7E3",
+          200: "#F7CFC7",
+          300: "#F3B7AB",
+          400: "#EF9F8F",
+          500: "#E76F51", // Warm Coral
+          600: "#B95941",
+          700: "#8B4331",
+          800: "#5D2C20",
+          900: "#2E1610",
+        },
+        // Tertiary - Soft Lavender (Elegance & Grace)
+        tertiary: {
+          DEFAULT: "#8B7FA8",
+          50: "#F5F4F8",
+          100: "#EBE9F1",
+          200: "#D7D3E3",
+          300: "#C3BDD5",
+          400: "#AFA7C7",
+          500: "#8B7FA8", // Soft Lavender
+          600: "#6F6686",
+          700: "#534C64",
+          800: "#373342",
+          900: "#1B1921",
+        },
+        // Legacy support - map to new colors
+        terracotta: "#E76F51", // Maps to accent
+        "deep-violet": "#2A9D8F", // Maps to secondary
+        "energy-accent": "#E76F51", // Maps to accent
       },
       borderRadius: {
         "4xl": "2rem",

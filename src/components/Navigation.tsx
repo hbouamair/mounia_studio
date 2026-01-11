@@ -3,11 +3,15 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import Logo from "./Logo";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -19,10 +23,11 @@ export default function Navigation() {
   }, []);
   
   const navItems = [
-    { name: "Classes", href: "#classes" },
-    { name: "Schedule", href: "#schedule" },
-    { name: "Instructors", href: "#instructors" },
-    { name: "Contact", href: "#contact" },
+    { name: "Accueil", href: "/" },
+    { name: "Classes", href: "/classes" },
+    { name: "Studios", href: "/studios" },
+    { name: "Instructeurs", href: "/instructors" },
+    { name: "Contact", href: "/contact" },
   ];
   
   return (
@@ -37,59 +42,67 @@ export default function Navigation() {
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Logo - Clean Design */}
-          <motion.a
-            href="#hero"
-            className="relative group cursor-interactive"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="flex items-center gap-2">
-              <motion.div
-                className="w-2 h-2 rounded-full bg-terracotta"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              <span className="text-xl lg:text-2xl font-display font-extrabold text-charcoal">
-                Étoile <span className="text-terracotta">Dance</span>
-              </span>
-            </div>
-          </motion.a>
+          {/* Logo - Studio RJ Stylized */}
+          <div className="flex items-center">
+            <Logo size="md" className="cursor-interactive" />
+          </div>
           
           {/* Desktop Navigation - Clean Links */}
           <div className="hidden md:flex items-center gap-1 lg:gap-2">
             {navItems.map((item, index) => (
-              <motion.a
+              <Link
                 key={item.name}
                 href={item.href}
-                className="relative px-4 lg:px-5 py-2.5 text-soft-charcoal hover:text-charcoal font-nav font-medium cursor-interactive transition-colors group"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 + 0.3 }}
-                whileHover={{ y: -2 }}
+                className="relative px-4 lg:px-5 py-2.5 font-nav font-medium cursor-interactive transition-colors group"
               >
-                {item.name}
-                <motion.div
-                  className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-terracotta opacity-0 group-hover:opacity-100"
-                  transition={{ duration: 0.2 }}
-                />
-              </motion.a>
+                <motion.span
+                  className={cn(
+                    "block",
+                    pathname === item.href
+                      ? "text-primary-500"
+                      : "text-soft-charcoal hover:text-charcoal"
+                  )}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 + 0.3 }}
+                  whileHover={{ y: -2 }}
+                >
+                  {item.name}
+                </motion.span>
+                {pathname === item.href && (
+                  <motion.div
+                    className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500"
+                    layoutId="activeNav"
+                    transition={{ duration: 0.2 }}
+                  />
+                )}
+                {pathname !== item.href && (
+                  <motion.div
+                    className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500 opacity-0 group-hover:opacity-100"
+                    transition={{ duration: 0.2 }}
+                  />
+                )}
+              </Link>
             ))}
             
-            <motion.a
-              href="#schedule"
-              className="ml-4 px-6 py-3 bg-gradient-to-r from-terracotta to-[#c66647] text-white font-nav font-bold cursor-interactive rounded-full shadow-md hover:shadow-lg transition-all"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.6 }}
-              whileHover={{ scale: 1.05, boxShadow: "0 8px 24px rgba(217, 119, 87, 0.25)" }}
-              whileTap={{ scale: 0.98 }}
-              style={{ color: '#ffffff' }}
-            >
-              Book a Class
-            </motion.a>
+            <Link href="/studios">
+              <motion.button
+                className="ml-4 px-6 py-3 text-white font-nav font-bold cursor-interactive rounded-full shadow-md hover:shadow-lg transition-all"
+                style={{ 
+                  background: 'linear-gradient(to right, #1E3A5F, #182E4C)',
+                  color: '#ffffff'
+                }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 }}
+                whileHover={{ scale: 1.05, boxShadow: "0 8px 24px rgba(30, 58, 95, 0.25)" }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Réserver un Studio
+              </motion.button>
+            </Link>
           </div>
           
           {/* Mobile Menu Button */}
@@ -118,32 +131,43 @@ export default function Navigation() {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="px-6 py-6 space-y-2">
+            <div className="px-4 sm:px-6 py-6 space-y-2">
               {navItems.map((item, index) => (
-                <motion.a
+                <Link
                   key={item.name}
                   href={item.href}
-                  className="block px-4 py-3 text-base text-soft-charcoal hover:text-charcoal hover:bg-terracotta/5 rounded-xl transition-all cursor-interactive font-nav font-medium"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
                   onClick={() => setIsOpen(false)}
                 >
-                  {item.name}
-                </motion.a>
+                  <motion.div
+                    className={cn(
+                      "block px-4 py-3 text-base rounded-xl transition-all cursor-interactive font-nav font-medium",
+                      pathname === item.href
+                        ? "text-primary-500 bg-primary-500/10"
+                        : "text-soft-charcoal hover:text-charcoal hover:bg-primary-500/5"
+                    )}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    {item.name}
+                  </motion.div>
+                </Link>
               ))}
               
-              <motion.a
-                href="#schedule"
-                className="block text-center px-6 py-4 text-white bg-gradient-to-r from-terracotta to-[#c66647] font-nav font-bold rounded-2xl cursor-interactive shadow-md mt-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                onClick={() => setIsOpen(false)}
-                style={{ color: '#ffffff' }}
-              >
-                Start Your Journey
-              </motion.a>
+              <Link href="/studios" onClick={() => setIsOpen(false)}>
+                <motion.div
+                  className="block text-center px-6 py-4 text-white font-nav font-bold rounded-2xl cursor-interactive shadow-md mt-4"
+                  style={{ 
+                    background: 'linear-gradient(to right, #1E3A5F, #182E4C)',
+                    color: '#ffffff'
+                  }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  Réserver un Studio
+                </motion.div>
+              </Link>
             </div>
           </motion.div>
         )}

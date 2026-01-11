@@ -7,21 +7,21 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="relative py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden"
+      className="relative pt-[88px] sm:pt-[96px] md:pt-[104px] pb-12 sm:pb-16 md:pb-20 lg:pb-24 overflow-hidden"
     >
       {/* Smooth gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-cream via-white to-cream" />
       
       {/* Animated gradient overlay */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-tr from-deep-violet/3 via-transparent to-terracotta/3"
+        className="absolute inset-0 bg-gradient-to-tr from-secondary-500/3 via-transparent to-primary-500/3"
         animate={{ 
           opacity: [0.3, 0.5, 0.3],
         }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
       />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header - 2026 Design */}
         <motion.div
           className="text-center mb-12 sm:mb-16 md:mb-20"
@@ -38,11 +38,11 @@ export default function Contact() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <span className="text-charcoal">Visit Our </span>
+              <span className="text-charcoal">Visitez Notre </span>
               <span className="relative inline-block">
-                <span className="text-terracotta">Studio</span>
+                <span className="text-primary-500">Studio</span>
                 <motion.div
-                  className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-terracotta to-deep-violet rounded-full"
+                  className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full"
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: 1 }}
                   viewport={{ once: true }}
@@ -59,41 +59,41 @@ export default function Contact() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            Come experience our beautiful space and meet our community.
-            <span className="block mt-2 text-terracotta font-medium">We can&apos;t wait to dance with you!</span>
+            Venez découvrir notre espace magnifique et rencontrer notre communauté.
+            <span className="block mt-2 text-primary-500 font-medium">Nous avons hâte de danser avec vous !</span>
           </motion.p>
         </motion.div>
         
         {/* Contact Grid - Modern Design */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
           {[
             {
               icon: MapPin,
-              title: "Location",
-              content: "123 Dance Avenue\nSan Francisco, CA 94102",
-              color: "#D97757",
-              gradient: "from-terracotta/20 to-terracotta/5"
+              title: "Adresse",
+              content: "Casablanca, Maroc\nZone Industrielle",
+              color: "#1E3A5F",
+              gradient: "from-primary-500/20 to-primary-500/5"
             },
             {
               icon: Phone,
-              title: "Phone",
-              content: "(555) 123-4567\nMon-Sat: 9am-9pm",
-              color: "#6B4E97",
-              gradient: "from-deep-violet/20 to-deep-violet/5"
+              title: "Téléphone",
+              content: "+212 6XX XXX XXX\nLun-Sam: 9h-21h",
+              color: "#2A9D8F",
+              gradient: "from-secondary-500/20 to-secondary-500/5"
             },
             {
               icon: Mail,
               title: "Email",
-              content: "hello@etoiledance.com\ninfo@etoiledance.com",
-              color: "#D97757",
-              gradient: "from-terracotta/20 to-terracotta/5"
+              content: "contact@studiorj.ma\ninfo@studiorj.ma",
+              color: "#1E3A5F",
+              gradient: "from-primary-500/20 to-primary-500/5"
             },
             {
               icon: Clock,
-              title: "Studio Hours",
-              content: "Mon-Fri: 6am-10pm\nSat-Sun: 8am-8pm",
-              color: "#6B4E97",
-              gradient: "from-deep-violet/20 to-deep-violet/5"
+              title: "Horaires",
+              content: "Lun-Ven: 6h-22h\nSam-Dim: 8h-20h",
+              color: "#2A9D8F",
+              gradient: "from-secondary-500/20 to-secondary-500/5"
             },
           ].map((item, index) => (
             <motion.div

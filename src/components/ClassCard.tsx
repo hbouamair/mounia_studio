@@ -47,7 +47,7 @@ export default function ClassCard({ danceClass, index, onBook }: ClassCardProps)
             {danceClass.style}
           </motion.div>
           
-          <h3 className="text-2xl sm:text-3xl font-display font-bold text-charcoal mb-3 leading-tight group-hover:text-terracotta transition-colors">
+          <h3 className="text-2xl sm:text-3xl font-display font-bold text-charcoal mb-3 leading-tight group-hover:text-primary-500 transition-colors">
             {danceClass.title}
           </h3>
           
@@ -76,12 +76,12 @@ export default function ClassCard({ danceClass, index, onBook }: ClassCardProps)
           
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cream border border-charcoal/10 shadow-sm">
-              <Clock className="w-4 h-4 text-terracotta" />
+              <Clock className="w-4 h-4 text-primary-500" />
               <span className="font-bold text-sm text-charcoal">{danceClass.duration} min</span>
             </div>
             
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cream border border-charcoal/10 shadow-sm">
-              <TrendingUp className="w-4 h-4 text-terracotta" />
+              <TrendingUp className="w-4 h-4 text-primary-500" />
               <span className="font-bold text-sm text-charcoal">{danceClass.level}</span>
             </div>
           </div>
@@ -93,10 +93,19 @@ export default function ClassCard({ danceClass, index, onBook }: ClassCardProps)
             e.stopPropagation();
             onBook();
           }}
-          className="w-full py-4 px-6 bg-charcoal text-white font-bold rounded-2xl group-hover:bg-gradient-to-r group-hover:from-terracotta group-hover:to-[#c66647] transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+          className="w-full py-4 px-6 text-white font-bold rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+          style={{ 
+            backgroundColor: '#1A1A1A',
+            color: '#ffffff'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(to right, #1E3A5F, #182E4C)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#1A1A1A';
+          }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          style={{ color: '#ffffff' }}
         >
           View Schedule
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
