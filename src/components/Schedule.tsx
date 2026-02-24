@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Calendar, Sparkles, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
 
 interface ScheduleProps {
   onOpenBooking: () => void;

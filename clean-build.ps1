@@ -18,3 +18,4 @@ if (Test-Path node_modules/.cache) {
 
 Write-Host "`nNettoyage terminé ! Vous pouvez maintenant lancer 'npm run dev'" -ForegroundColor Green
 
+

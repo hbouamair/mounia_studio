@@ -1,42 +1,181 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Music, Users, Sparkles, Check, ArrowRight } from "lucide-react";
+import { PICKTIME_BOOKING_URL } from "@/lib/constants";
+import { useState } from "react";
 
 interface StudioPlan {
   id: string;
   name: string;
+  subtitle: string;
   price: string;
+  period: string;
   size?: string;
   capacity?: string;
   offer: string;
   image: string;
+  popular: boolean;
+  color: string;
+  features: string[];
 }
 
 const studios: StudioPlan[] = [
   {
     id: "1",
-    name: "STUDIO 1",
-    price: "450 DHS/heure",
-    size: "m² et capacité",
+    name: "Studio 1",
+    subtitle: "Parfait pour les solos",
+    price: "450 DHS",
+    period: "heure",
+    size: "Petit - 30m²",
+    capacity: "1-5 personnes",
     offer: "Offre: 10h = 1 cours gratuit",
-    image: "/studio-image.jpg"
+    image: "/studio-image.jpg",
+    popular: false,
+    color: "from-primary-500 to-primary-600",
+    features: ["Miroirs muraux", "Système son Bluetooth", "Climatisation", "Parquet professionnel"]
   },
   {
     id: "2",
-    name: "STUDIO 2",
-    price: "450 DHS/heure",
+    name: "Studio 2",
+    subtitle: "Le plus populaire",
+    price: "450 DHS",
+    period: "heure",
+    size: "Moyen - 60m²",
+    capacity: "5-15 personnes",
     offer: "Offre: 10h = 1 cours gratuit",
-    image: "/studio-image.jpg"
+    image: "/studio-image.jpg",
+    popular: true,
+    color: "from-secondary-500 to-secondary-600",
+    features: ["Tout de Studio 1", "Espace plus grand", "Éclairage professionnel", "Vestiaire privé"]
   },
   {
     id: "3",
-    name: "STUDIO 3",
-    price: "250 DHS/heure",
+    name: "Studio 3",
+    subtitle: "Pour les grands groupes",
+    price: "250 DHS",
+    period: "heure",
+    size: "Grand - 100m²",
+    capacity: "15-30 personnes",
     offer: "Offre: 10h = 1 cours gratuit",
-    image: "/studio-image.jpg"
+    image: "/studio-image.jpg",
+    popular: false,
+    color: "from-accent-500 to-accent-600",
+    features: ["Tout de Studio 2", "Très grand espace", "2 vestiaires", "Système son premium"]
   }
 ];
+
+function StudioPlanCard({ studio, index }: { studio: StudioPlan; index: number }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      className="relative"
+    >
+      {studio.popular && (
+        <motion.div
+          initial={{ scale: 0 }}
+          whileInView={{ scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ type: "spring", delay: 0.3 }}
+          className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 bg-gradient-to-r from-accent-500 to-accent-600 text-white rounded-full shadow-lg"
+        >
+          <div className="flex items-center gap-1">
+            <Sparkles className="w-4 h-4" />
+            <span className="text-xs font-bold">Populaire</span>
+          </div>
+        </motion.div>
+      )}
+
+      <motion.div
+        whileHover={{ y: -8 }}
+        className={`relative skeu-card overflow-hidden ${
+          studio.popular ? "ring-2 ring-accent-500 ring-offset-4 ring-offset-white" : ""
+        }`}
+      >
+        <div className="relative h-48 overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-500"
+            style={{
+              backgroundImage: `url("${studio.image}")`,
+              transform: hovered ? "scale(1.1)" : "scale(1)"
+            }}
+          />
+          <div className={`absolute inset-0 bg-gradient-to-t ${studio.color} opacity-60`} />
+          <div className="absolute inset-0 flex flex-col justify-end p-6">
+            <h3 className="text-2xl font-display font-bold text-white mb-1">
+              {studio.name}
+            </h3>
+            <p className="text-white/90 text-sm">{studio.subtitle}</p>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {studio.size && studio.capacity && (
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center">
+                  <Music className="w-4 h-4 text-primary-500" />
+                </div>
+                <span className="text-soft-charcoal">{studio.size}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-secondary-500" />
+                <span className="text-soft-charcoal">{studio.capacity}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="py-4 border-y border-charcoal/10">
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-display font-bold text-charcoal">
+                {studio.price}
+              </span>
+              <span className="text-soft-charcoal text-sm">/ {studio.period}</span>
+            </div>
+          </div>
+
+          <ul className="space-y-2">
+            <li className="flex items-center gap-2 text-sm text-soft-charcoal">
+              <Check className="w-4 h-4 text-secondary-500 flex-shrink-0" />
+              <span>{studio.offer}</span>
+            </li>
+            {studio.features.map((feature, idx) => (
+              <motion.li
+                key={idx}
+                initial={{ opacity: 0, x: -10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 + idx * 0.05 }}
+                className="flex items-center gap-2 text-sm text-soft-charcoal"
+              >
+                <Check className="w-4 h-4 text-secondary-500 flex-shrink-0" />
+                <span>{feature}</span>
+              </motion.li>
+            ))}
+          </ul>
+
+          <motion.a
+            href={PICKTIME_BOOKING_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`mt-4 w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r ${studio.color} text-white font-semibold font-nav rounded-xl shadow-md hover:shadow-lg transition-shadow`}
+          >
+            <span>Réserver</span>
+            <ArrowRight className="w-4 h-4" />
+          </motion.a>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 export default function FlexiblePlans() {
   return (
@@ -137,186 +276,13 @@ export default function FlexiblePlans() {
           </motion.p>
         </motion.div>
         
-        {/* Modern Studio Cards Grid - 2026 Design */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-6xl mx-auto">
+        {/* Studio Cards — same design as homepage Nos formules (StudioSelection) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {studios.map((studio, index) => (
-            <motion.div
-              key={studio.id}
-              className="group relative"
-              initial={{ opacity: 0, y: 50, rotateX: -15 }}
-              whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-              viewport={{ once: true }}
-              transition={{ 
-                duration: 0.8, 
-                delay: 0.2 + index * 0.15,
-                type: "spring",
-                stiffness: 100
-              }}
-              whileHover={{ 
-                y: -12,
-                rotateY: 2,
-                transition: { duration: 0.3 }
-              }}
-              style={{ perspective: "1000px" }}
-            >
-              {/* Card Container with Glassmorphism */}
-              <div className="relative h-full bg-white/80 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl border border-white/50">
-                {/* Animated gradient overlay */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-transparent to-secondary-500/5"
-                  animate={{ 
-                    opacity: [0.3, 0.6, 0.3],
-                  }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: index * 0.5 }}
-                />
-                
-                {/* Image Section with Modern Overlay */}
-                <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden">
-                  <motion.div 
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{
-                      backgroundImage: `url(${studio.image})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
-                    }}
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.6 }}
-                  />
-                  
-                  {/* Modern gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 via-charcoal/40 to-transparent" />
-                  
-                  {/* Floating badge */}
-                  <motion.div
-                    className="absolute top-4 right-4 px-4 py-2 rounded-full backdrop-blur-md"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.2)',
-                      border: '1px solid rgba(255, 255, 255, 0.3)'
-                    }}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                  >
-                    <span className="text-white text-xs font-bold">POPULAIRE</span>
-                  </motion.div>
-                  
-                  {/* Studio name overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <h3 className="text-3xl sm:text-4xl font-black text-white mb-1" style={{
-                      textShadow: '0 2px 10px rgba(0,0,0,0.5)'
-                    }}>
-                      {studio.name}
-                    </h3>
-                    {studio.size && (
-                      <p className="text-white/80 text-sm font-medium">{studio.size}</p>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Content Section with Modern Design */}
-                <div 
-                  className="relative p-5 sm:p-6"
-                  style={{
-                    background: 'linear-gradient(135deg, #2A9D8F, #1E3A5F)'
-                  }}
-                >
-                  {/* Price with gradient */}
-                  <div className="mb-3">
-                    <p className="text-2xl sm:text-3xl font-black mb-2">
-                      <span 
-                        className="text-white"
-                        style={{
-                          color: '#ffffff',
-                          fontWeight: 900,
-                          textShadow: '0 2px 10px rgba(0,0,0,0.3)'
-                        }}
-                      >
-                        {studio.price.split('/')[0]}
-                      </span>
-                      <span 
-                        className="text-white/90 text-xl"
-                        style={{
-                          color: 'rgba(255, 255, 255, 0.9)',
-                          textShadow: '0 1px 5px rgba(0,0,0,0.2)'
-                        }}
-                      >
-                        /{studio.price.split('/')[1]}
-                      </span>
-                    </p>
-                  </div>
-                  
-                  {/* Offer badge */}
-                  <motion.div
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.2)',
-                      border: '1px solid rgba(255, 255, 255, 0.3)'
-                    }}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-white" style={{ color: '#ffffff' }} />
-                    <span className="text-sm font-semibold text-white" style={{ color: '#ffffff' }}>{studio.offer}</span>
-                  </motion.div>
-                  
-                  {/* Modern CTA Button */}
-                  <motion.button
-                    className="group/btn w-full py-3 px-5 rounded-xl font-bold text-sm sm:text-base overflow-hidden relative"
-                    style={{
-                      background: '#ffffff',
-                      color: '#1E3A5F',
-                      boxShadow: '0 10px 30px rgba(255, 255, 255, 0.3)'
-                    }}
-                    whileHover={{ 
-                      scale: 1.05,
-                      y: -2,
-                      boxShadow: '0 15px 40px rgba(255, 255, 255, 0.4)'
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="relative z-10 flex items-center justify-center gap-2" style={{ color: '#1E3A5F', fontWeight: 700 }}>
-                      RÉSERVER MAINTENANT
-                      <motion.span
-                        animate={{ x: [0, 4, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        <ArrowRight className="w-5 h-5" style={{ color: '#1E3A5F' }} />
-                      </motion.span>
-                    </span>
-                    
-                    {/* Hover gradient overlay */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10"
-                      initial={{ x: "-100%" }}
-                      whileHover={{ x: 0 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </motion.button>
-                </div>
-                
-                {/* Decorative corner accent */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/10 to-transparent rounded-bl-full" />
-              </div>
-              
-              {/* Glow effect on hover */}
-              <motion.div
-                className="absolute -inset-1 bg-gradient-to-r from-primary-500/20 to-secondary-500/20 rounded-3xl blur-xl opacity-0 -z-10"
-                whileHover={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              />
-            </motion.div>
+            <StudioPlanCard key={studio.id} studio={studio} index={index} />
           ))}
         </div>
       </div>
-      
-      {/* Add keyframes for gradient animation */}
-      <style jsx>{`
-        @keyframes gradient-shift {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-      `}</style>
     </section>
   );
 }

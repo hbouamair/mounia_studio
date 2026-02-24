@@ -124,7 +124,7 @@ export default function Footer() {
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           <p className="text-cream/60 text-sm text-center md:text-left font-medium">
-            © 2026 Studio RJ. Tous droits réservés.
+            © 2026 RJ Studio. Tous droits réservés.
           </p>
           
           <motion.div 

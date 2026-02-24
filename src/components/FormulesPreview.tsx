@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { PICKTIME_BOOKING_URL } from "@/lib/constants";
 
 export default function FormulesPreview() {
   return (
@@ -89,9 +89,9 @@ export default function FormulesPreview() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.7 }}
           >
-            <Link href="/studios">
-              <motion.button
-                className="group relative px-8 sm:px-10 md:px-14 py-3 sm:py-4 md:py-5 font-bold rounded-2xl overflow-hidden shadow-2xl text-sm sm:text-base"
+            <a href={PICKTIME_BOOKING_URL} target="_blank" rel="noopener noreferrer">
+              <motion.span
+                className="group relative inline-block px-8 sm:px-10 md:px-14 py-3 sm:py-4 md:py-5 font-bold rounded-2xl overflow-hidden shadow-2xl text-sm sm:text-base cursor-pointer"
                 style={{
                   background: 'linear-gradient(135deg, #1E3A5F, #2A9D8F)',
                   color: '#ffffff'
@@ -120,8 +120,8 @@ export default function FormulesPreview() {
                   whileHover={{ x: 0 }}
                   transition={{ duration: 0.3 }}
                 />
-              </motion.button>
-            </Link>
+              </motion.span>
+            </a>
           </motion.div>
         </motion.div>
       </div>

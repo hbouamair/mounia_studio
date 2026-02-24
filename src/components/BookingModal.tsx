@@ -288,7 +288,7 @@ export default function BookingModal({ isOpen, onClose, preselectedClassId }: Bo
                                       whileHover={{ scale: 1.02 }}
                                       whileTap={{ scale: 0.98 }}
                                     >
-                                      Book Now
+                                      Réserver
                                     </motion.button>
                                   )}
                                 </div>

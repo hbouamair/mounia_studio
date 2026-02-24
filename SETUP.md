@@ -149,6 +149,18 @@ Add images to `public/images/instructors/` and update the `instructors.ts` data:
 }
 ```
 
+### Contact form – receiving emails
+
+The contact form sends messages to **Mouniaarji@gmail.com** via [Resend](https://resend.com).
+
+1. Create an account at [resend.com](https://resend.com) and get an API key.2. Create a file `.env.local` in the project root and add:
+   ```
+   RESEND_API_KEY=re_xxxxxxxxxxxx
+   ```
+3. Restart the dev server (`npm run dev`). Submissions will be sent to your inbox with a branded HTML email (RJ Studio colors and layout).
+
+Optional: after verifying your domain in Resend, set `RESEND_FROM_EMAIL=RJ Studio <contact@yourdomain.com>` so emails come from your domain.
+
 ### Connecting to a Backend
 
 The project includes `src/app/actions.ts` with Server Actions. To connect to a real backend:

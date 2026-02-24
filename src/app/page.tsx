@@ -3,25 +3,18 @@
 import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
-import WhyChooseUs from "@/components/WhyChooseUs";
 import HowItWorks from "@/components/HowItWorks";
-import FormulesPreview from "@/components/FormulesPreview";
-import Schedule from "@/components/Schedule";
+import StudioSelection from "@/components/StudioSelection";
+import WhyChooseUs from "@/components/WhyChooseUs";
+import FAQ from "@/components/FAQ";
 import BookingModal from "@/components/BookingModal";
 import Footer from "@/components/Footer";
 
 export default function Home() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [preselectedClassId, setPreselectedClassId] = useState<string | undefined>(undefined);
-  
-  const handleBookClass = (classId?: string) => {
-    setPreselectedClassId(classId);
-    setIsBookingModalOpen(true);
-  };
   
   const handleCloseModal = () => {
     setIsBookingModalOpen(false);
-    setPreselectedClassId(undefined);
   };
   
   return (
@@ -32,10 +25,10 @@ export default function Home() {
       {/* Main Content - Homepage Optimized */}
       <main className="relative">
         <Hero />
-        <WhyChooseUs />
         <HowItWorks />
-        <FormulesPreview />
-        <Schedule onOpenBooking={() => handleBookClass()} />
+        <StudioSelection />
+        <WhyChooseUs />
+        <FAQ />
       </main>
       
       {/* Footer */}
@@ -45,7 +38,7 @@ export default function Home() {
       <BookingModal
         isOpen={isBookingModalOpen}
         onClose={handleCloseModal}
-        preselectedClassId={preselectedClassId}
+        preselectedClassId={undefined}
       />
     </>
   );

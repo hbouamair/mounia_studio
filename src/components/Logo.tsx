@@ -43,7 +43,7 @@ export default function Logo({ className = "", size = "md", variant = "default" 
       >
         <Image
           src={logoSrc}
-          alt="Studio RJ Logo"
+          alt="RJ Studio Logo"
           width={currentWidth}
           height={currentHeight}
           className="w-auto h-full object-contain"

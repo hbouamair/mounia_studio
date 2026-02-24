@@ -409,7 +409,7 @@ export default function Instructors() {
                   whileTap={{ scale: 0.95 }}
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2" style={{ color: '#ffffff', fontWeight: 700 }}>
-                    Book Your First Class
+                    Réserver
                     <motion.span
                       animate={{ x: [0, 4, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
@@ -425,7 +425,7 @@ export default function Instructors() {
                     transition={{ duration: 0.3 }}
                   />
                   <span className="absolute inset-0 z-10 flex items-center justify-center gap-2 text-white" style={{ color: '#ffffff', fontWeight: 700 }}>
-                    Book Your First Class
+                    Réserver
                     <span style={{ color: '#ffffff' }}>→</span>
                   </span>
                 </motion.a>

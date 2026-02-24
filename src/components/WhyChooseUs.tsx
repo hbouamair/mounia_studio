@@ -155,7 +155,7 @@ export default function WhyChooseUs() {
               />
             </span>
             <br />
-            <span className="text-white">STUDIO RJ?</span>
+            <span className="text-white">RJ STUDIO?</span>
           </motion.h2>
         </motion.div>
         

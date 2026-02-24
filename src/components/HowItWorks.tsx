@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, ArrowRight, Calendar, Clock, CreditCard, Sparkles } from "lucide-react";
+import { ArrowRight, Calendar, Clock, CreditCard, Sparkles } from "lucide-react";
 
 export default function HowItWorks() {
   const steps = [
