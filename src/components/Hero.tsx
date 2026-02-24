@@ -52,27 +52,34 @@ export default function Hero() {
       id="hero"
       className="relative min-h-screen w-full overflow-hidden bg-charcoal"
     >
-      {/* ——— Video: full viewport width & height, cover ——— */}
+      {/* ——— Video: full viewport; on mobile fill 100% hero height (cover) ——— */}
       <motion.div
-        className="absolute inset-0"
-        style={{ scale: isMobile ? 1 : videoScale }}
+        className="absolute inset-0 overflow-hidden"
+        style={{ scale: isMobile ? 1.3 : videoScale }}
       >
-        <div
-          className="absolute inset-0 overflow-hidden w-full"
-          style={{ left: 0, right: 0, width: "100%" }}
-        >
+        <div className="absolute inset-0 overflow-hidden w-full">
           <iframe
             src="https://www.youtube.com/embed/-jz1t222qAg?autoplay=1&mute=1&loop=1&playlist=-jz1t222qAg&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&disablekb=1&fs=0&iv_load_policy=3"
             title="Dance Studio Background Video"
             allow="autoplay; encrypted-media"
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none w-[100vw] min-w-full h-[56.25vw] min-h-[100vh]"
-            style={{
-              border: "none",
-              width: "100vw",
-              minWidth: "100%",
-              height: "56.25vw",
-              minHeight: "100vh",
-            }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            style={
+              isMobile
+                ? {
+                    border: "none",
+                    width: "177.78vh",
+                    minWidth: "100%",
+                    height: "100vh",
+                    minHeight: "100vh",
+                  }
+                : {
+                    border: "none",
+                    width: "100vw",
+                    minWidth: "100%",
+                    height: "56.25vw",
+                    minHeight: "100vh",
+                  }
+            }
           />
         </div>
 
