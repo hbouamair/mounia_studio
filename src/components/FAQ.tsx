@@ -6,36 +6,24 @@ import { useState } from "react";
 
 const faqs = [
   {
-    question: "Comment réserver un studio ?",
-    answer: "Vous pouvez réserver un studio en cliquant sur 'Réserver' : vous serez redirigé vers notre plateforme de réservation Picktime pour choisir le studio, la date et l'heure. Vous recevrez une confirmation par email immédiatement."
+    question: "Quelle est la durée minimum de réservation ?",
+    answer: "La durée minimum de réservation est de 1 heure.\n\nAprès la première heure, il est possible de réserver par tranches de 30 minutes.\n\nPar exemple, vous pouvez réserver un studio pour 1h30, 2h, 2h30, etc., selon les disponibilités."
   },
   {
-    question: "Quels sont les horaires d'ouverture ?",
-    answer: "RJ Studio est ouvert du lundi au dimanche de 8h00 à 22h00. Les réservations de studios sont disponibles pendant ces horaires. Les cours collectifs ont des horaires spécifiques consultables dans notre planning."
+    question: "À quels usages les studios peuvent-ils être loués ?",
+    answer: "Les studios peuvent être loués pour une large variété d'activités, notamment :\n\n• Cours collectifs : tous types de danse, yoga, mat Pilates, stretching, fitness, etc.\n\n• Cours privés ou en petits groupes : coaching individuel, séances personnalisées, entraînements ciblés.\n\n• Répétitions : danseurs, chorégraphies, spectacles, performances scéniques.\n\n• Création et production de contenu : enregistrements vidéo de danse, tournages de contenus artistiques, répétitions filmées, shootings photo.\n\nLes studios sont adaptés à un usage artistique, sportif et créatif, dans le respect des règles de fonctionnement du lieu."
   },
   {
-    question: "Dois-je payer pour essayer un cours ?",
-    answer: "Le premier cours est GRATUIT pour tous les nouveaux membres ! C'est l'occasion parfaite de découvrir notre studio, rencontrer nos instructeurs et voir si notre ambiance vous correspond."
-  },
-  {
-    question: "Quel équipement dois-je apporter ?",
-    answer: "Pour les cours de danse, portez des vêtements confortables et des chaussures adaptées à votre style de danse. Nous fournissons les tapis pour le yoga. N'oubliez pas d'apporter une bouteille d'eau et une serviette."
+    question: "Puis-je venir au studio sans réservation préalable ?",
+    answer: "Non. L'accès aux studios se fait uniquement sur réservation préalable, et ce selon les disponibilités.\n\nCette règle s'applique à tous les usages, qu'il s'agisse d'un usage personnel, d'un cours privé ou de cours collectifs."
   },
   {
     question: "Puis-je annuler ma réservation ?",
-    answer: "Oui, vous pouvez annuler votre réservation jusqu'à 24 heures avant l'heure prévue pour un remboursement complet. Les annulations dans les 24 heures sont non remboursables mais peuvent être reportées selon disponibilité."
+    answer: "Annulation gratuite jusqu'à 72 h avant la session. Entre 24 h et 48 h : 50 % du paiement retenu. Moins de 24 h : aucun remboursement."
   },
   {
-    question: "Y a-t-il un parking disponible ?",
-    answer: "Oui, nous disposons d'un parking gratuit pour nos clients directement devant le studio. Des places de stationnement dans la rue sont également disponibles à proximité."
-  },
-  {
-    question: "Proposez-vous des cours privés ?",
-    answer: "Absolument ! Nos instructeurs offrent des cours privés personnalisés pour tous les niveaux. Contactez-nous pour planifier votre cours privé et discuter de vos objectifs spécifiques."
-  },
-  {
-    question: "Quels styles de danse enseignez-vous ?",
-    answer: "Nous offrons une grande variété de styles incluant Hip-Hop, Ballet, Jazz, Contemporary, Salsa, Zumba, et plus encore. Consultez notre page Classes pour voir la liste complète et les horaires."
+    question: "Comment réserver un studio à la demi-journée ou à la journée ?",
+    answer: "Les réservations à la demi-journée ou à la journée se font uniquement sur devis.\n\nMerci de nous contacter par téléphone ou WhatsApp : +212 6 XX XX XX XX."
   }
 ];
 
@@ -134,7 +122,7 @@ export default function FAQ() {
                           animate={{ y: 0 }}
                           className="pt-4 border-t border-charcoal/10"
                         >
-                          <p className="text-soft-charcoal leading-relaxed">
+                          <p className="text-soft-charcoal leading-relaxed whitespace-pre-line">
                             {faq.answer}
                           </p>
                         </motion.div>

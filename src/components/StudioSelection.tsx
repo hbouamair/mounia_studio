@@ -7,55 +7,55 @@ import { useState } from "react";
 
 const studios = [
   {
-    id: 1,
-    name: "Studio 1",
-    subtitle: "Parfait pour les solos",
-    size: "Petit - 30m²",
-    capacity: "1-5 personnes",
-    price: "150 DH",
-    period: "par heure",
-    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
-    features: [
-      "Miroirs muraux",
-      "Système son Bluetooth",
-      "Climatisation",
-      "Parquet professionnel"
-    ],
-    popular: false,
-    color: "from-primary-500 to-primary-600"
-  },
-  {
     id: 2,
     name: "Studio 2",
-    subtitle: "Le plus populaire",
-    size: "Moyen - 60m²",
-    capacity: "5-15 personnes",
-    price: "250 DH",
-    period: "par heure",
+    subtitle: "Cours collectifs standard / répétitions",
+    size: "Moyen - 35m²",
+    capacity: "7-12 personnes",
+    pricePeak: "400 MAD/h",
+    priceOffPeak: "300 MAD/h",
     image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
     features: [
-      "Tout de Studio 1",
-      "Espace plus grand",
-      "Éclairage professionnel",
-      "Vestiaire privé"
+      "Système son Bluetooth",
+      "Climatisation",
+      "Grand miroirs",
+      "Forfait 10h + 1h gratuite"
+    ],
+    popular: false,
+    color: "from-secondary-500 to-secondary-600"
+  },
+  {
+    id: 1,
+    name: "Studio 1",
+    subtitle: "Cours collectifs / répétitions / workshops",
+    size: "Grand - 49m²",
+    capacity: "10-16 personnes",
+    pricePeak: "400 MAD/h",
+    priceOffPeak: "300 MAD/h",
+    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+    features: [
+      "Système son Bluetooth",
+      "Climatisation",
+      "Grand miroirs",
+      "Forfait 10h + 1h gratuite"
     ],
     popular: true,
-    color: "from-secondary-500 to-secondary-600"
+    color: "from-primary-500 to-primary-600"
   },
   {
     id: 3,
     name: "Studio 3",
-    subtitle: "Pour les grands groupes",
-    size: "Grand - 100m²",
-    capacity: "15-30 personnes",
-    price: "400 DH",
-    period: "par heure",
+    subtitle: "Cours en petit groupe / coaching / répétitions ciblées",
+    size: "Moyen - 30m²",
+    capacity: "6-10 personnes",
+    pricePeak: "250 MAD/h",
+    priceOffPeak: "150 MAD/h",
     image: "https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?w=800&q=80",
     features: [
-      "Tout de Studio 2",
-      "Très grand espace",
-      "2 vestiaires",
-      "Système son premium"
+      "Système son Bluetooth",
+      "Climatisation",
+      "Grand miroirs",
+      "Forfait 10h + 1h gratuite"
     ],
     popular: false,
     color: "from-accent-500 to-accent-600"
@@ -166,11 +166,17 @@ export default function StudioSelection() {
                   </div>
 
                   <div className="py-4 border-y border-charcoal/10">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-display font-bold text-charcoal">
-                        {studio.price}
+                    <p className="text-xs font-semibold uppercase tracking-wider text-soft-charcoal mb-1">
+                      Heures pleines · Heures creuses
+                    </p>
+                    <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1">
+                      <span className="text-2xl md:text-3xl font-display font-bold text-charcoal">
+                        {studio.pricePeak}
                       </span>
-                      <span className="text-soft-charcoal text-sm">{studio.period}</span>
+                      <span className="text-soft-charcoal">|</span>
+                      <span className="text-xl md:text-2xl font-display font-bold text-secondary-500">
+                        {studio.priceOffPeak}
+                      </span>
                     </div>
                   </div>
 

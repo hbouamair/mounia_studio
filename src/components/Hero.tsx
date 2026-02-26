@@ -137,23 +137,27 @@ export default function Hero() {
                     Chaque projet mérite son espace.
                   </motion.h1>
 
-                  {/* Vision — wrapped in a soft pill */}
+                  {/* Subtitle — location flexible */}
                   <motion.p
                     variants={itemUp}
-                    className="text-sm sm:text-base text-white/90 font-medium max-w-sm rounded-2xl bg-white/5 border border-white/10 px-5 py-3"
+                    className="text-sm sm:text-base text-white/90 font-medium max-w-md rounded-2xl bg-white/5 border border-white/10 px-5 py-3"
                     style={{ textShadow: "0 1px 8px rgba(0,0,0,0.35)" }}
                   >
-                    Nous mettons l&apos;espace au service de votre création.
+                    Location flexible studios de danse et bien être à Casablanca
                   </motion.p>
 
-                  {/* Inline tags: 3 Studios · Flexible Réservation */}
-                  <motion.div variants={itemUp} className="flex flex-wrap justify-center gap-2">
+                  {/* Inline tags: Réservation 24/7 | Paiement sécurisé | Sans engagement */}
+                  <motion.div variants={itemUp} className="flex flex-wrap justify-center gap-x-2 gap-y-1">
                     <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
-                      3 Studios
+                      Réservation en ligne 24/7
                     </span>
-                    <span className="text-white/40" aria-hidden>·</span>
+                    <span className="text-white/40" aria-hidden>|</span>
                     <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
-                      Flexible Réservation
+                      Paiement sécurisé
+                    </span>
+                    <span className="text-white/40" aria-hidden>|</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
+                      Sans engagement
                     </span>
                   </motion.div>
 

@@ -9,8 +9,8 @@ interface StudioPlan {
   id: string;
   name: string;
   subtitle: string;
-  price: string;
-  period: string;
+  pricePeak: string;
+  priceOffPeak: string;
   size?: string;
   capacity?: string;
   offer: string;
@@ -22,46 +22,46 @@ interface StudioPlan {
 
 const studios: StudioPlan[] = [
   {
-    id: "1",
-    name: "Studio 1",
-    subtitle: "Parfait pour les solos",
-    price: "450 DHS",
-    period: "heure",
-    size: "Petit - 30m²",
-    capacity: "1-5 personnes",
-    offer: "Offre: 10h = 1 cours gratuit",
-    image: "/studio-image.jpg",
-    popular: false,
-    color: "from-primary-500 to-primary-600",
-    features: ["Miroirs muraux", "Système son Bluetooth", "Climatisation", "Parquet professionnel"]
-  },
-  {
     id: "2",
     name: "Studio 2",
-    subtitle: "Le plus populaire",
-    price: "450 DHS",
-    period: "heure",
-    size: "Moyen - 60m²",
-    capacity: "5-15 personnes",
-    offer: "Offre: 10h = 1 cours gratuit",
+    subtitle: "Cours collectifs standard / répétitions",
+    pricePeak: "400 MAD/h",
+    priceOffPeak: "300 MAD/h",
+    size: "Moyen - 35m²",
+    capacity: "7-12 personnes",
+    offer: "Forfait 10h + 1h gratuite",
+    image: "/studio-image.jpg",
+    popular: false,
+    color: "from-secondary-500 to-secondary-600",
+    features: ["Système son Bluetooth", "Climatisation", "Grand miroirs"]
+  },
+  {
+    id: "1",
+    name: "Studio 1",
+    subtitle: "Cours collectifs / répétitions / workshops",
+    pricePeak: "400 MAD/h",
+    priceOffPeak: "300 MAD/h",
+    size: "Grand - 49m²",
+    capacity: "10-16 personnes",
+    offer: "Forfait 10h + 1h gratuite",
     image: "/studio-image.jpg",
     popular: true,
-    color: "from-secondary-500 to-secondary-600",
-    features: ["Tout de Studio 1", "Espace plus grand", "Éclairage professionnel", "Vestiaire privé"]
+    color: "from-primary-500 to-primary-600",
+    features: ["Système son Bluetooth", "Climatisation", "Grand miroirs"]
   },
   {
     id: "3",
     name: "Studio 3",
-    subtitle: "Pour les grands groupes",
-    price: "250 DHS",
-    period: "heure",
-    size: "Grand - 100m²",
-    capacity: "15-30 personnes",
-    offer: "Offre: 10h = 1 cours gratuit",
+    subtitle: "Cours en petit groupe / coaching / répétitions ciblées",
+    pricePeak: "250 MAD/h",
+    priceOffPeak: "150 MAD/h",
+    size: "Moyen - 30m²",
+    capacity: "6-10 personnes",
+    offer: "Forfait 10h + 1h gratuite",
     image: "/studio-image.jpg",
     popular: false,
     color: "from-accent-500 to-accent-600",
-    features: ["Tout de Studio 2", "Très grand espace", "2 vestiaires", "Système son premium"]
+    features: ["Système son Bluetooth", "Climatisation", "Grand miroirs"]
   }
 ];
 
@@ -132,11 +132,17 @@ function StudioPlanCard({ studio, index }: { studio: StudioPlan; index: number }
           )}
 
           <div className="py-4 border-y border-charcoal/10">
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-display font-bold text-charcoal">
-                {studio.price}
+            <p className="text-xs font-semibold uppercase tracking-wider text-soft-charcoal mb-1">
+              Heures pleines · Heures creuses
+            </p>
+            <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1">
+              <span className="text-2xl md:text-3xl font-display font-bold text-charcoal">
+                {studio.pricePeak}
               </span>
-              <span className="text-soft-charcoal text-sm">/ {studio.period}</span>
+              <span className="text-soft-charcoal">|</span>
+              <span className="text-xl md:text-2xl font-display font-bold text-secondary-500">
+                {studio.priceOffPeak}
+              </span>
             </div>
           </div>
 
