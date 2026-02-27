@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export const metadata: Metadata = {
   title: "RJ Studio | Studio de Danse à Casablanca",
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="fr" className="scroll-smooth">
       <body className="antialiased">
         {children}
+        <WhatsAppButton />
       </body>
     </html>
   );
