@@ -107,48 +107,54 @@ function StudioPlanCard({ studio, index }: { studio: StudioPlan; index: number }
             }}
           />
           <div className={`absolute inset-0 bg-gradient-to-t ${studio.color} opacity-60`} />
-          <div className="absolute inset-0 flex flex-col justify-end p-6">
-            <h3 className="text-2xl font-display font-bold text-white mb-1">
+          <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8">
+            <h3 className="text-3xl sm:text-4xl font-display font-bold text-white mb-1">
               {studio.name}
             </h3>
-            <p className="text-white/90 text-sm">{studio.subtitle}</p>
+            <p className="text-white/90 text-base sm:text-lg">{studio.subtitle}</p>
           </div>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-6 sm:p-8 space-y-5">
           {studio.size && studio.capacity && (
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center">
-                  <Music className="w-4 h-4 text-primary-500" />
+            <div className="flex items-center justify-between text-base sm:text-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary-500/10 flex items-center justify-center">
+                  <Music className="w-5 h-5 text-primary-500" />
                 </div>
-                <span className="text-soft-charcoal">{studio.size}</span>
+                <span className="text-soft-charcoal font-medium">{studio.size}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-secondary-500" />
-                <span className="text-soft-charcoal">{studio.capacity}</span>
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5 text-secondary-500" />
+                <span className="text-soft-charcoal font-medium">{studio.capacity}</span>
               </div>
             </div>
           )}
 
-          <div className="py-4 border-y border-charcoal/10">
-            <p className="text-xs font-semibold uppercase tracking-wider text-soft-charcoal mb-1">
-              Heures pleines · Heures creuses
-            </p>
-            <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1">
-              <span className="text-2xl md:text-3xl font-display font-bold text-charcoal">
-                {studio.pricePeak}
-              </span>
-              <span className="text-soft-charcoal">|</span>
-              <span className="text-xl md:text-2xl font-display font-bold text-secondary-500">
-                {studio.priceOffPeak}
-              </span>
+          <div className="py-5 border-y border-charcoal/10">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <span className="text-sm font-semibold uppercase tracking-wider text-soft-charcoal">
+                  Heures pleines
+                </span>
+                <span className="text-3xl sm:text-4xl font-display font-bold text-charcoal">
+                  {studio.pricePeak}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <span className="text-sm font-semibold uppercase tracking-wider text-soft-charcoal">
+                  Heures creuses
+                </span>
+                <span className="text-2xl sm:text-3xl font-display font-bold text-secondary-500">
+                  {studio.priceOffPeak}
+                </span>
+              </div>
             </div>
           </div>
 
           <ul className="space-y-2">
-            <li className="flex items-center gap-2 text-sm text-soft-charcoal">
-              <Check className="w-4 h-4 text-secondary-500 flex-shrink-0" />
+            <li className="flex items-center gap-3 text-base sm:text-lg text-soft-charcoal">
+              <Check className="w-5 h-5 text-secondary-500 flex-shrink-0" />
               <span>{studio.offer}</span>
             </li>
             {studio.features.map((feature, idx) => (
@@ -158,9 +164,9 @@ function StudioPlanCard({ studio, index }: { studio: StudioPlan; index: number }
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 + idx * 0.05 }}
-                className="flex items-center gap-2 text-sm text-soft-charcoal"
+                className="flex items-center gap-3 text-base sm:text-lg text-soft-charcoal"
               >
-                <Check className="w-4 h-4 text-secondary-500 flex-shrink-0" />
+                <Check className="w-5 h-5 text-secondary-500 flex-shrink-0" />
                 <span>{feature}</span>
               </motion.li>
             ))}
@@ -172,10 +178,10 @@ function StudioPlanCard({ studio, index }: { studio: StudioPlan; index: number }
             rel="noopener noreferrer"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className={`mt-4 w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r ${studio.color} text-white font-semibold font-nav rounded-xl shadow-md hover:shadow-lg transition-shadow`}
+            className={`mt-4 w-full flex items-center justify-center gap-2 px-6 py-4 text-lg font-semibold rounded-xl shadow-md hover:shadow-lg transition-shadow bg-gradient-to-r ${studio.color} text-white font-nav`}
           >
             <span>Réserver</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-5 h-5" />
           </motion.a>
         </div>
       </motion.div>

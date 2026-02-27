@@ -101,7 +101,7 @@ export default function StudioSelection() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto items-stretch">
           {studios.map((studio, index) => (
             <motion.div
               key={studio.id}
@@ -111,7 +111,7 @@ export default function StudioSelection() {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               onHoverStart={() => setHoveredId(studio.id)}
               onHoverEnd={() => setHoveredId(null)}
-              className="relative"
+              className="relative h-full flex flex-col"
             >
               {studio.popular && (
                 <motion.div
@@ -130,11 +130,11 @@ export default function StudioSelection() {
 
               <motion.div
                 whileHover={{ y: -8 }}
-                className={`relative skeu-card overflow-hidden ${
+                className={`relative skeu-card overflow-hidden flex flex-col h-full ${
                   studio.popular ? "ring-2 ring-accent-500 ring-offset-4 ring-offset-cream" : ""
                 }`}
               >
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-48 overflow-hidden flex-shrink-0">
                   <div
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-500"
                     style={{
@@ -151,7 +151,7 @@ export default function StudioSelection() {
                   </div>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-4 flex-1 flex flex-col">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center">
@@ -166,21 +166,27 @@ export default function StudioSelection() {
                   </div>
 
                   <div className="py-4 border-y border-charcoal/10">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-soft-charcoal mb-1">
-                      Heures pleines · Heures creuses
-                    </p>
-                    <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1">
-                      <span className="text-2xl md:text-3xl font-display font-bold text-charcoal">
-                        {studio.pricePeak}
-                      </span>
-                      <span className="text-soft-charcoal">|</span>
-                      <span className="text-xl md:text-2xl font-display font-bold text-secondary-500">
-                        {studio.priceOffPeak}
-                      </span>
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-soft-charcoal">
+                          Heures pleines
+                        </span>
+                        <span className="text-2xl md:text-3xl font-display font-bold text-charcoal">
+                          {studio.pricePeak}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-soft-charcoal">
+                          Heures creuses
+                        </span>
+                        <span className="text-xl md:text-2xl font-display font-bold text-secondary-500">
+                          {studio.priceOffPeak}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <ul className="space-y-2">
+                  <ul className="space-y-2 flex-1">
                     {studio.features.map((feature, idx) => (
                       <motion.li
                         key={idx}
@@ -202,7 +208,7 @@ export default function StudioSelection() {
                     rel="noopener noreferrer"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`mt-4 w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r ${studio.color} text-white font-semibold font-nav rounded-xl shadow-md hover:shadow-lg transition-shadow`}
+                    className={`mt-auto w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r ${studio.color} text-white font-semibold font-nav rounded-xl shadow-md hover:shadow-lg transition-shadow`}
                   >
                     <span>Réserver</span>
                     <ArrowRight className="w-4 h-4" />
