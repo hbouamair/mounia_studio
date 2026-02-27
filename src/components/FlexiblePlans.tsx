@@ -22,20 +22,6 @@ interface StudioPlan {
 
 const studios: StudioPlan[] = [
   {
-    id: "2",
-    name: "Studio 2",
-    subtitle: "Cours collectifs standard / répétitions",
-    pricePeak: "400 MAD/h",
-    priceOffPeak: "300 MAD/h",
-    size: "Moyen - 35m²",
-    capacity: "7-12 personnes",
-    offer: "Forfait 10h + 1h gratuite",
-    image: "/studio-image.jpg",
-    popular: false,
-    color: "from-secondary-500 to-secondary-600",
-    features: ["Système son Bluetooth", "Climatisation", "Grand miroirs"]
-  },
-  {
     id: "1",
     name: "Studio 1",
     subtitle: "Cours collectifs / répétitions / workshops",
@@ -47,6 +33,20 @@ const studios: StudioPlan[] = [
     image: "/studio-image.jpg",
     popular: true,
     color: "from-primary-500 to-primary-600",
+    features: ["Système son Bluetooth", "Climatisation", "Grand miroirs"]
+  },
+  {
+    id: "2",
+    name: "Studio 2",
+    subtitle: "Cours collectifs standard / répétitions",
+    pricePeak: "300 MAD/h",
+    priceOffPeak: "200 MAD/h",
+    size: "Moyen - 35m²",
+    capacity: "7-12 personnes",
+    offer: "Forfait 10h + 1h gratuite",
+    image: "/studio-image.jpg",
+    popular: false,
+    color: "from-secondary-500 to-secondary-600",
     features: ["Système son Bluetooth", "Climatisation", "Grand miroirs"]
   },
   {

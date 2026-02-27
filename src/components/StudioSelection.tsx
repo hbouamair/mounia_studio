@@ -7,24 +7,6 @@ import { useState } from "react";
 
 const studios = [
   {
-    id: 2,
-    name: "Studio 2",
-    subtitle: "Cours collectifs standard / répétitions",
-    size: "Moyen - 35m²",
-    capacity: "7-12 personnes",
-    pricePeak: "400 MAD/h",
-    priceOffPeak: "300 MAD/h",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
-    features: [
-      "Système son Bluetooth",
-      "Climatisation",
-      "Grand miroirs",
-      "Forfait 10h + 1h gratuite"
-    ],
-    popular: false,
-    color: "from-secondary-500 to-secondary-600"
-  },
-  {
     id: 1,
     name: "Studio 1",
     subtitle: "Cours collectifs / répétitions / workshops",
@@ -41,6 +23,24 @@ const studios = [
     ],
     popular: true,
     color: "from-primary-500 to-primary-600"
+  },
+  {
+    id: 2,
+    name: "Studio 2",
+    subtitle: "Cours collectifs standard / répétitions",
+    size: "Moyen - 35m²",
+    capacity: "7-12 personnes",
+    pricePeak: "300 MAD/h",
+    priceOffPeak: "200 MAD/h",
+    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    features: [
+      "Système son Bluetooth",
+      "Climatisation",
+      "Grand miroirs",
+      "Forfait 10h + 1h gratuite"
+    ],
+    popular: false,
+    color: "from-secondary-500 to-secondary-600"
   },
   {
     id: 3,
