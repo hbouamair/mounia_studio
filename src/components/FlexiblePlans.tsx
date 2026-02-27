@@ -98,7 +98,7 @@ function StudioPlanCard({ studio, index }: { studio: StudioPlan; index: number }
           studio.popular ? "ring-2 ring-accent-500 ring-offset-4 ring-offset-white" : ""
         }`}
       >
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative h-64 sm:h-72 overflow-hidden">
           <div
             className="absolute inset-0 bg-cover bg-center transition-transform duration-500"
             style={{
@@ -282,8 +282,8 @@ export default function FlexiblePlans() {
           </motion.p>
         </motion.div>
         
-        {/* Studio Cards — same design as homepage Nos formules (StudioSelection) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        {/* Studio Cards — full width, stacked vertically */}
+        <div className="grid grid-cols-1 gap-8 max-w-7xl mx-auto">
           {studios.map((studio, index) => (
             <StudioPlanCard key={studio.id} studio={studio} index={index} />
           ))}

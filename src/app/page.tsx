@@ -9,6 +9,7 @@ import WhyChooseUs from "@/components/WhyChooseUs";
 import FAQ from "@/components/FAQ";
 import BookingModal from "@/components/BookingModal";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function Home() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -33,6 +34,9 @@ export default function Home() {
       
       {/* Footer */}
       <Footer />
+      
+      {/* Floating WhatsApp button */}
+      <WhatsAppButton />
       
       {/* Booking Modal */}
       <BookingModal
