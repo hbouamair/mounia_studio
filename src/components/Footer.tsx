@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Instagram, Facebook, Youtube, Twitter, Heart } from "lucide-react";
+import { Instagram, Facebook, Youtube, Twitter } from "lucide-react";
 import Logo from "./Logo";
 
 export default function Footer() {
@@ -40,7 +40,7 @@ export default function Footer() {
             <div className="mb-3 sm:mb-4">
               <Logo size="lg" variant="white" />
             </div>
-            <p className="text-sm sm:text-base text-cream/70 mb-4 sm:mb-6">
+            <p className="text-base text-cream/85 mb-4 sm:mb-6 leading-relaxed">
               Transformez votre vie grâce à l&apos;art de la danse à Casablanca.
             </p>
             
@@ -66,7 +66,7 @@ export default function Footer() {
           
           {/* Quick Links */}
           <div>
-            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Liens Rapides</h4>
+            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">Liens Rapides</h4>
             <ul className="space-y-3">
               {[
                 { name: "Classes", href: "/classes" },
@@ -77,7 +77,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-cream/70 hover:text-primary-500 transition-colors cursor-interactive"
+                    className="text-cream/85 hover:text-white transition-colors text-base"
                   >
                     {link.name}
                   </a>
@@ -88,13 +88,13 @@ export default function Footer() {
           
           {/* Classes */}
           <div>
-            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Cours Populaires</h4>
+            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">Cours Populaires</h4>
             <ul className="space-y-3">
               {["Ballet", "Hip Hop", "Contemporain", "Jazz"].map((style) => (
                 <li key={style}>
                   <a
                     href="/classes"
-                    className="text-cream/70 hover:text-primary-500 transition-colors cursor-interactive"
+                    className="text-cream/85 hover:text-white transition-colors text-base"
                   >
                     {style}
                   </a>
@@ -105,8 +105,8 @@ export default function Footer() {
           
           {/* Contact */}
           <div>
-            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Contactez-nous</h4>
-            <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-cream/70">
+            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">Contactez-nous</h4>
+            <ul className="space-y-2 sm:space-y-3 text-base text-cream/85 leading-relaxed">
               <li>Casablanca, Maroc</li>
               <li>Zone Industrielle</li>
               <li>+212 6XX XXX XXX</li>
@@ -115,46 +115,44 @@ export default function Footer() {
           </div>
         </div>
         
-        {/* Bottom Bar - Modern Design */}
+        {/* Bottom Bar - Copyright & Made by Smarty */}
         <motion.div 
-          className="pt-10 border-t border-cream/10 flex flex-col md:flex-row items-center justify-between gap-6"
+          className="pt-10 border-t border-cream/20 flex flex-col md:flex-row items-center justify-between gap-6"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <p className="text-cream/60 text-sm text-center md:text-left font-medium">
+          <p className="text-cream/90 text-base text-center md:text-left font-medium">
             © 2026 RJ Studio. Tous droits réservés.
           </p>
           
-          <motion.div 
-            className="flex items-center gap-2 px-4 py-2 rounded-full glass-morphism border border-cream/10"
-            whileHover={{ scale: 1.05 }}
-          >
-            <span className="text-cream/70 text-sm">Fait avec</span>
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          <p className="text-cream/90 text-base text-center md:text-left font-medium tracking-wide">
+            Made by{" "}
+            <a
+              href="https://smarty.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-signature font-bold text-white text-xl md:text-2xl hover:text-secondary-400 transition-colors underline underline-offset-2 decoration-white/50 hover:decoration-white"
             >
-              <Heart className="w-4 h-4 text-primary-500 fill-primary-500" />
-            </motion.div>
-            <span className="text-cream/70 text-sm">pour les danseurs</span>
-          </motion.div>
+              Smarty
+            </a>
+          </p>
           
-          <div className="flex gap-6 text-sm">
+          <div className="flex gap-6 text-base">
             <motion.a 
               href="#" 
-              className="text-cream/60 hover:text-primary-500 transition-colors cursor-interactive font-medium"
+              className="text-cream/80 hover:text-white transition-colors font-medium"
               whileHover={{ y: -2 }}
             >
-              Privacy Policy
+              Mentions légales
             </motion.a>
             <motion.a 
               href="#" 
-              className="text-cream/60 hover:text-primary-500 transition-colors cursor-interactive font-medium"
+              className="text-cream/80 hover:text-white transition-colors font-medium"
               whileHover={{ y: -2 }}
             >
-              Terms of Service
+              CGU
             </motion.a>
           </div>
         </motion.div>

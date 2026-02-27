@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Caveat:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,6 +8,7 @@
   --font-body: 'DM Sans', sans-serif;
   --font-sora: 'Sora', sans-serif;
   --font-nav: 'Outfit', sans-serif;
+  --font-signature: 'Caveat', cursive;
 }
 
 body {
@@ -36,6 +37,11 @@ body {
   .font-nav {
     font-family: var(--font-nav);
     letter-spacing: -0.005em;
+  }
+  
+  .font-signature {
+    font-family: var(--font-signature);
+    letter-spacing: 0.02em;
   }
   
   .glass-morphism {
