@@ -107,7 +107,7 @@ export default function ClassCard({ danceClass, index, onBook }: ClassCardProps)
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          View Schedule
+          Voir le planning
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </motion.button>
       </div>

@@ -44,22 +44,16 @@ export default function Footer() {
               Transformez votre vie grâce à l&apos;art de la danse à Casablanca.
             </p>
             
-            {/* Social Links */}
-            <div className="flex gap-3">
+            {/* Social Links - retirés jusqu'à avoir les URLs */}
+            <div className="flex gap-3" aria-hidden>
               {socialLinks.map((social, idx) => (
-                <motion.a
+                <span
                   key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center cursor-interactive hover:bg-primary-500 border border-white/20 transition-all shadow-skeu-sm"
-                  whileHover={{ scale: 1.15, y: -3, rotate: 5 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
+                  className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center opacity-60"
+                  title="Bientôt disponible"
                 >
                   <social.icon className="w-5 h-5" />
-                </motion.a>
+                </span>
               ))}
             </div>
           </div>
@@ -107,10 +101,9 @@ export default function Footer() {
           <div>
             <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">Contactez-nous</h4>
             <ul className="space-y-2 sm:space-y-3 text-base text-cream/85 leading-relaxed">
-              <li>Casablanca, Maroc</li>
-              <li>Zone Industrielle</li>
-              <li>+212 6XX XXX XXX</li>
-              <li>contact@studiorj.ma</li>
+              <li>Rue Biranzarane, Casablanca</li>
+              <li><a href="tel:+212661777421" className="hover:text-white transition-colors">+212 661 77 77 21</a></li>
+              <li><a href="mailto:contact@studiorj.ma" className="hover:text-white transition-colors">contact@studiorj.ma</a></li>
             </ul>
           </div>
         </div>
@@ -141,14 +134,14 @@ export default function Footer() {
           
           <div className="flex gap-6 text-base">
             <motion.a 
-              href="#" 
+              href="/mentions-legales" 
               className="text-cream/80 hover:text-white transition-colors font-medium"
               whileHover={{ y: -2 }}
             >
               Mentions légales
             </motion.a>
             <motion.a 
-              href="#" 
+              href="/cgu" 
               className="text-cream/80 hover:text-white transition-colors font-medium"
               whileHover={{ y: -2 }}
             >

@@ -23,7 +23,7 @@ const faqs = [
   },
   {
     question: "Comment réserver un studio à la demi-journée ou à la journée ?",
-    answer: "Les réservations à la demi-journée ou à la journée se font uniquement sur devis.\n\nMerci de nous contacter par téléphone ou WhatsApp : +212 6 XX XX XX XX."
+    answer: "Les réservations à la demi-journée ou à la journée se font uniquement sur devis.\n\nMerci de nous contacter par téléphone ou WhatsApp : +212 661 77 77 21."
   }
 ];
 
@@ -122,9 +122,13 @@ export default function FAQ() {
                           animate={{ y: 0 }}
                           className="pt-4 border-t border-charcoal/10"
                         >
-                          <p className="text-soft-charcoal leading-relaxed whitespace-pre-line">
-                            {faq.answer}
-                          </p>
+                          <div className="text-soft-charcoal leading-relaxed space-y-4">
+                            {faq.answer.split(/\n\n+/).map((paragraph, i) => (
+                              <p key={i} className="m-0">
+                                {paragraph.trim()}
+                              </p>
+                            ))}
+                          </div>
                         </motion.div>
                       </div>
                     </motion.div>

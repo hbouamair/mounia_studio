@@ -21,6 +21,10 @@
 - **Terracotta**: Use for primary CTAs, highlights, and energy moments
 - **Deep Violet**: Use for secondary CTAs and visual variety
 
+### Accessibilité / Contraste
+- Valider le contraste (texte sur fond, dégradés) avec **axe DevTools** ou **WAVE** lors de tout changement de couleurs.
+- Focus clavier : outline visible sur liens et boutons (défini dans `globals.css`).
+
 ## Typography
 
 ### Font Families

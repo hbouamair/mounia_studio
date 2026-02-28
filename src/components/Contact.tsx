@@ -239,7 +239,7 @@ export default function Contact() {
                         id="phone"
                         name="phone"
                         type="tel"
-                        placeholder="+212 6XX XXX XXX"
+                        placeholder="+212 661 77 77 21"
                         className="contact-input w-full px-5 py-4 rounded-2xl border-2 border-black/8 bg-white/70 backdrop-blur-sm text-charcoal placeholder:text-soft-charcoal/50 focus:border-primary-500 focus:bg-white focus:shadow-[0_0_0_4px_rgba(30,58,95,0.08)] outline-none transition-all duration-300 font-body"
                       />
                     </motion.div>
@@ -314,7 +314,7 @@ export default function Contact() {
         >
           {[
             { icon: MapPin, label: "Adresse", value: CONTACT_ADDRESS },
-            { icon: Phone, label: "Téléphone", value: "+212 6XX XXX XXX" },
+            { icon: Phone, label: "Téléphone", value: "+212 661 77 77 21" },
             { icon: Mail, label: "Email", value: "contact@studiorj.ma" },
             { icon: Clock, label: "Horaires", value: "Lun-Dim · 8h-22h" },
           ].map((item) => (

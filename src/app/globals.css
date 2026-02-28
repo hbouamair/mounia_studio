@@ -148,8 +148,19 @@ html {
   color: white;
 }
 
-/* Focus styles */
+/* Focus styles - accessibilité clavier */
+:focus {
+  outline: none;
+}
 :focus-visible {
-  outline: 2px solid #d97757;
+  outline: 2px solid #1E3A5F;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #1E3A5F;
   outline-offset: 2px;
 }
+
+/* Contraste : valider avec axe DevTools ou WAVE si vous changez les couleurs (texte sur fond, dégradés). */
