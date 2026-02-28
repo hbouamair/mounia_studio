@@ -15,34 +15,23 @@ const localBusinessSchema = {
     addressLocality: "Casablanca",
     addressCountry: "MA",
   },
-  geo: {
-    "@type": "GeoCoordinates",
-    // À remplir avec les coordonnées GPS exactes du studio pour Google Maps
-    // "latitude": 33.5731,
-    // "longitude": -7.5898,
-  },
   openingHoursSpecification: {
     "@type": "OpeningHoursSpecification",
     dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     opens: "09:00",
     closes: "21:00",
   },
-  sameAs: [
-    // Ajouter les URLs des réseaux sociaux quand disponibles
-    // "https://www.instagram.com/studiorj",
-    // "https://www.facebook.com/studiorj",
-  ],
+  sameAs: [],
   priceRange: "$$",
   image: `${siteUrl}/studio-image.jpg`,
 };
 
 export default function JsonLd() {
+  const json = JSON.stringify(localBusinessSchema);
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(localBusinessSchema),
-      }}
+      dangerouslySetInnerHTML={{ __html: json }}
     />
   );
 }
