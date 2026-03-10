@@ -1,25 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import ComingSoonPage from "@/components/ComingSoonPage";
 
-import Navigation from "@/components/Navigation";
-import Hero from "@/components/Hero";
-import HowItWorks from "@/components/HowItWorks";
-import StudioSelection from "@/components/StudioSelection";
-import WhyChooseUs from "@/components/WhyChooseUs";
-import FAQ from "@/components/FAQ";
-import Footer from "@/components/Footer";
+export const metadata: Metadata = {
+  title: "Coming Soon 2026",
+  description: "RJ Studio — Nouveau site en préparation. Studio de danse & bien-être à Casablanca. 2026.",
+};
 
-export default function Home() {
-  return (
-    <>
-      <Navigation />
-      <main className="relative">
-        <Hero />
-        <HowItWorks />
-        <StudioSelection />
-        <WhyChooseUs />
-        <FAQ />
-      </main>
-      <Footer />
-    </>
-  );
+export default function HomePage() {
+  return <ComingSoonPage />;
 }

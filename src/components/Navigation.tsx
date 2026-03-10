@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
-import { PICKTIME_BOOKING_URL } from "@/lib/constants";
+import { PICKTIME_BOOKING_URL, BASE_PATH } from "@/lib/constants";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,11 +24,11 @@ export default function Navigation() {
   }, []);
   
   const navItems = [
-    { name: "Accueil", href: "/" },
-    { name: "Studios", href: "/studios" },
-    { name: "Classes", href: "/classes" },
-    { name: "À Propos", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: "Accueil", href: BASE_PATH },
+    { name: "Studios", href: `${BASE_PATH}/studios` },
+    { name: "Classes", href: `${BASE_PATH}/classes` },
+    { name: "À Propos", href: `${BASE_PATH}/about` },
+    { name: "Contact", href: `${BASE_PATH}/contact` },
   ];
   
   return (
@@ -46,9 +46,9 @@ export default function Navigation() {
       <div className="max-w-7xl 2xl:max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10">
         <div className="flex items-center justify-between h-20">
           {/* Logo - white over video, default when scrolled */}
-          <div className="flex items-center">
+          <Link href={BASE_PATH} className="flex items-center">
             <Logo size="md" variant={isScrolled ? "default" : "white"} className="cursor-interactive" />
-          </div>
+          </Link>
           
           {/* Desktop Navigation - visible over video when at top */}
           <div className="hidden md:flex items-center gap-1 lg:gap-2">

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import WhatsAppButton from "@/components/WhatsAppButton";
+import ConditionalWhatsApp from "@/components/ConditionalWhatsApp";
 import JsonLd from "@/components/JsonLd";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.rjstudio.ma";
@@ -69,7 +69,7 @@ export default function RootLayout({
       <body className="antialiased">
         <JsonLd />
         {children}
-        <WhatsAppButton />
+        <ConditionalWhatsApp />
       </body>
     </html>
   );

@@ -1,8 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { Instagram, Facebook, Youtube, Twitter } from "lucide-react";
 import Logo from "./Logo";
+import { BASE_PATH } from "@/lib/constants";
 
 export default function Footer() {
   const socialLinks = [
@@ -38,7 +40,9 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="mb-3 sm:mb-4">
-              <Logo size="lg" variant="white" />
+              <Link href={BASE_PATH}>
+                <Logo size="lg" variant="white" />
+              </Link>
             </div>
             <p className="text-base text-cream/85 mb-4 sm:mb-6 leading-relaxed">
               Transformez votre vie grâce à l&apos;art de la danse à Casablanca.
@@ -63,18 +67,18 @@ export default function Footer() {
             <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-white">Liens Rapides</h4>
             <ul className="space-y-3">
               {[
-                { name: "Classes", href: "/classes" },
-                { name: "Studios", href: "/studios" },
-                { name: "Instructeurs", href: "/instructors" },
-                { name: "Contact", href: "/contact" }
+                { name: "Classes", href: `${BASE_PATH}/classes` },
+                { name: "Studios", href: `${BASE_PATH}/studios` },
+                { name: "Instructeurs", href: `${BASE_PATH}/instructors` },
+                { name: "Contact", href: `${BASE_PATH}/contact` }
               ].map((link) => (
                 <li key={link.name}>
-                  <a
+                  <Link
                     href={link.href}
                     className="text-cream/85 hover:text-white transition-colors text-base"
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -86,12 +90,12 @@ export default function Footer() {
             <ul className="space-y-3">
               {["Ballet", "Hip Hop", "Contemporain", "Jazz"].map((style) => (
                 <li key={style}>
-                  <a
-                    href="/classes"
+                  <Link
+                    href={`${BASE_PATH}/classes`}
                     className="text-cream/85 hover:text-white transition-colors text-base"
                   >
                     {style}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -133,20 +137,18 @@ export default function Footer() {
           </p>
           
           <div className="flex gap-6 text-base">
-            <motion.a 
-              href="/mentions-legales" 
+            <Link
+              href={`${BASE_PATH}/mentions-legales`}
               className="text-cream/80 hover:text-white transition-colors font-medium"
-              whileHover={{ y: -2 }}
             >
               Mentions légales
-            </motion.a>
-            <motion.a 
-              href="/cgu" 
+            </Link>
+            <Link
+              href={`${BASE_PATH}/cgu`}
               className="text-cream/80 hover:text-white transition-colors font-medium"
-              whileHover={{ y: -2 }}
             >
               CGU
-            </motion.a>
+            </Link>
           </div>
         </motion.div>
       </div>

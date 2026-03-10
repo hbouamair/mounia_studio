@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Play, ArrowRight } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { PICKTIME_BOOKING_URL } from "@/lib/constants";
+import { BASE_PATH } from "@/lib/constants";
 
 const stagger = {
   animate: {
@@ -186,7 +187,7 @@ export default function Hero() {
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                     </motion.a>
                     <motion.a
-                      href="/classes"
+                      href={`${BASE_PATH}/classes`}
                       className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold bg-white/95 text-charcoal border border-white/30 shadow-md hover:bg-white transition-colors"
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}

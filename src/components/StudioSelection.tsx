@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Music, Users, Sparkles, Check, ArrowRight } from "lucide-react";
 import { PICKTIME_BOOKING_URL } from "@/lib/constants";
+import { BASE_PATH } from "@/lib/constants";
 import { useState } from "react";
 
 const studios = [
@@ -231,7 +232,7 @@ export default function StudioSelection() {
             Besoin d&apos;aide pour choisir ?
           </p>
           <motion.a
-            href="/contact"
+            href={`${BASE_PATH}/contact`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="inline-flex items-center gap-2 px-8 py-4 bg-white border-2 border-primary-500 text-primary-500 font-semibold font-nav rounded-full shadow-md hover:bg-primary-500 hover:text-white transition-colors"

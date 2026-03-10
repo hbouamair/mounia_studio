@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, HelpCircle } from "lucide-react";
 import { useState } from "react";
+import { BASE_PATH } from "@/lib/constants";
 
 const faqs = [
   {
@@ -150,8 +151,8 @@ export default function FAQ() {
           <p className="text-soft-charcoal mb-4 text-lg">
             Vous avez d&apos;autres questions ?
           </p>
-          <motion.a
-            href="/contact"
+            <motion.a
+            href={`${BASE_PATH}/contact`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="inline-flex items-center gap-2 px-10 py-5 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold font-nav rounded-full shadow-lg hover:shadow-xl transition-shadow"

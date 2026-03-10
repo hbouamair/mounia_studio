@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { Sparkles, Users, Award, Heart, Calendar, TrendingUp } from "lucide-react";
+import { BASE_PATH } from "@/lib/constants";
 
 const AnimatedCounter = ({ end, duration = 2, suffix = "" }: { end: number; duration?: number; suffix?: string }) => {
   const [count, setCount] = useState(0);
@@ -295,7 +296,7 @@ export default function About() {
           className="text-center mt-16"
         >
           <motion.a
-            href="/studios"
+            href={`${BASE_PATH}/studios`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-terracotta to-deep-violet text-white font-semibold font-nav rounded-full shadow-lg hover:shadow-xl transition-shadow"
