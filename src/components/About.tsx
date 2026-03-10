@@ -47,10 +47,10 @@ export default function About() {
   const rotate = useTransform(scrollYProgress, [0, 1], [0, 360]);
 
   const stats = [
-    { value: 12, suffix: "+", label: "Years of Excellence", icon: Award },
-    { value: 5000, suffix: "+", label: "Happy Dancers", icon: Users },
-    { value: 50, suffix: "+", label: "Expert Instructors", icon: Heart },
-    { value: 200, suffix: "+", label: "Classes per Month", icon: Calendar },
+    { value: 3, suffix: "", label: "Studios équipés", icon: Award },
+    { value: 110, suffix: " m²", label: "Espace total", icon: Users },
+    { value: 7, suffix: "j/7", label: "Disponibilité", icon: Calendar },
+    { value: 1, suffix: "h", label: "Minimum réservation", icon: Heart },
   ];
 
   return (
@@ -69,7 +69,7 @@ export default function About() {
         className="absolute bottom-20 left-10 w-48 h-48 rounded-full bg-gradient-to-br from-deep-violet/20 to-terracotta/20 blur-3xl"
       />
 
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 2xl:max-w-8xl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -86,24 +86,23 @@ export default function About() {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-terracotta/10 to-deep-violet/10 mb-6"
           >
             <Sparkles className="w-5 h-5 text-terracotta" />
-            <span className="text-sm font-semibold font-nav text-charcoal">About Us</span>
+            <span className="text-sm font-semibold font-nav text-charcoal">À propos</span>
           </motion.div>
           
           <h2 className="text-5xl md:text-7xl font-display font-bold mb-6 text-charcoal leading-tight">
-            Where Movement <br />
+            À propos de{" "}
             <span className="bg-gradient-to-r from-terracotta to-deep-violet bg-clip-text text-transparent">
-              Meets Magic
+              RJ Studio Casablanca
             </span>
           </h2>
           
           <p className="text-lg md:text-xl text-soft-charcoal leading-relaxed font-body">
-            More than a dance studio—we&apos;re a community where passion, creativity, 
-            and artistry come together to create unforgettable moments.
+            Un espace professionnel dédié à la créativité, à la danse et au bien-être.
           </p>
         </motion.div>
 
         {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl 2xl:max-w-8xl mx-auto">
           {/* Large Story Card - Spans 2 columns */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -128,26 +127,27 @@ export default function About() {
               </motion.div>
               
               <h3 className="text-3xl md:text-4xl font-display font-bold mb-6 text-charcoal">
-                Our Story
+                Notre concept
               </h3>
               
               <div className="space-y-4 text-soft-charcoal font-body leading-relaxed">
                 <p>
-                  Founded in 2012, RJ Studio began with a simple dream: 
-                  to create a space where people of all ages and skill levels could 
-                  discover the joy of movement.
+                  RJ Studio est le premier open studio de danse et de bien-être situé à Casablanca, 
+                  conçu pour les professeurs indépendants, coachs sportifs et artistes qui souhaitent 
+                  enseigner, créer et développer leur activité dans un environnement professionnel, 
+                  moderne et flexible.
                 </p>
                 
                 <p>
-                  What started as a single studio with three instructors has blossomed 
-                  into a thriving community of passionate dancers, celebrated instructors, 
-                  and countless success stories.
+                  <strong>RJ Studio n&apos;est pas une école de danse.</strong> Il s&apos;agit d&apos;un espace 
+                  de studios entièrement équipés mis à disposition à la réservation, permettant aux 
+                  professionnels de la danse et du bien-être d&apos;enseigner et de créer en toute autonomie.
                 </p>
                 
                 <p>
-                  Today, we&apos;re proud to be recognized as one of the premier dance 
-                  destinations, offering world-class training in a warm, inclusive 
-                  environment where every dancer can shine.
+                  Trois studios modernes et entièrement équipés (49 m², 34 m² et 30 m²), soit plus de 110 m² 
+                  d&apos;espaces dédiés à la création et à l&apos;enseignement : danse, fitness, yoga, mat pilates, 
+                  répétitions artistiques ou workshops.
                 </p>
               </div>
 
@@ -205,12 +205,12 @@ export default function About() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
             whileHover={{ y: -8 }}
-            className="lg:col-span-2 skeu-card p-8 md:p-10 relative overflow-hidden group"
+            className="lg:col-span-2 skeu-card p-8 md:p-10 relative overflow-hidden group flex flex-col"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-deep-violet/5 via-transparent to-terracotta/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             
-            <div className="relative z-10">
-              <div className="flex items-start gap-4 mb-6">
+            <div className="relative z-10 flex-1 flex flex-col">
+              <div className="flex items-start gap-4 mb-4">
                 <motion.div
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   className="w-14 h-14 rounded-2xl bg-gradient-to-br from-deep-violet to-terracotta flex items-center justify-center shadow-lg flex-shrink-0"
@@ -218,16 +218,23 @@ export default function About() {
                   <TrendingUp className="w-7 h-7 text-white" />
                 </motion.div>
                 
-                <div>
-                  <h3 className="text-2xl md:text-3xl font-display font-bold text-charcoal mb-2">
-                    Our Mission
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-2xl md:text-3xl font-display font-bold text-charcoal mb-4">
+                    Notre mission
                   </h3>
-                  <p className="text-soft-charcoal font-body leading-relaxed">
-                    To empower individuals through the art of dance, fostering confidence, 
-                    creativity, and community in every step. We believe that dance is for 
-                    everyone, and we&apos;re committed to making our studio a welcoming space 
-                    where all can thrive.
-                  </p>
+                  <div className="space-y-4 text-soft-charcoal font-body leading-relaxed text-base md:text-lg">
+                    <p>
+                      Mettre à disposition des espaces équipés afin que chaque enseignant puisse 
+                      organiser ses propres cours, ateliers ou répétitions en toute autonomie.
+                    </p>
+                    <p>
+                      RJ Studio agit comme un partenaire logistique et technique, en mettant à 
+                      disposition des studios professionnels accessibles à la réservation. 
+                      Dans un modèle classique, les studios fonctionnent comme des écoles ; 
+                      chez nous, vous restez indépendants, avec des prix fixes et une réservation 
+                      simple en ligne, 7 jours sur 7.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -242,15 +249,15 @@ export default function About() {
             className="lg:col-span-2 skeu-card p-8 md:p-10 relative overflow-hidden"
           >
             <h3 className="text-2xl md:text-3xl font-display font-bold text-charcoal mb-8">
-              Our Values
+              Un concept innovant à Casablanca
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
-                { title: "Excellence", desc: "Highest quality instruction and facilities" },
-                { title: "Inclusivity", desc: "Welcoming dancers of all backgrounds" },
-                { title: "Innovation", desc: "Constantly evolving our techniques" },
-                { title: "Community", desc: "Building lasting connections" },
+                { title: "Indépendance", desc: "Vous restez totalement indépendants ; pas de rémunération au pourcentage, prix fixes." },
+                { title: "Flexibilité", desc: "Vous organisez vos cours selon vos horaires et vos besoins ; réservation simple et rapide en ligne." },
+                { title: "Disponibilité", desc: "Studios disponibles 7 jours sur 7 ; réservation à l'heure ou en packs." },
+                { title: "Autonomie", desc: "Gestion totalement indépendante de votre activité et de votre communauté." },
               ].map((value, index) => (
                 <motion.div
                   key={index}
@@ -288,12 +295,12 @@ export default function About() {
           className="text-center mt-16"
         >
           <motion.a
-            href="#contact"
+            href="/studios"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-terracotta to-deep-violet text-white font-semibold font-nav rounded-full shadow-lg hover:shadow-xl transition-shadow"
           >
-            <span>Join Our Community</span>
+            <span>Découvrir nos studios</span>
             <motion.span
               animate={{ x: [0, 5, 0] }}
               transition={{ duration: 1.5, repeat: Infinity }}

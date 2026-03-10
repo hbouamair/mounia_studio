@@ -64,7 +64,7 @@ export default function ClassesGrid({ onBookClass }: ClassesGridProps) {
         style={{ y: y2 }}
       />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl 2xl:max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10">
         {/* Section Header - 2026 Design */}
         <motion.div
           className="text-center mb-12 sm:mb-16 md:mb-20"

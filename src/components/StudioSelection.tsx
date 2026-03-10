@@ -9,7 +9,7 @@ const studios = [
   {
     id: 1,
     name: "Studio 1",
-    subtitle: "Cours collectifs / répétitions / workshops",
+    subtitle: "Idéal pour les groupes et les ateliers",
     size: "Grand - 49m²",
     capacity: "10-16 personnes",
     pricePeak: "400 MAD/h",
@@ -27,8 +27,8 @@ const studios = [
   {
     id: 2,
     name: "Studio 2",
-    subtitle: "Cours collectifs standard / répétitions",
-    size: "Moyen - 35m²",
+    subtitle: "Parfait pour les cours de danse ou fitness en groupe",
+    size: "Moyen - 34m²",
     capacity: "7-12 personnes",
     pricePeak: "300 MAD/h",
     priceOffPeak: "200 MAD/h",
@@ -45,7 +45,7 @@ const studios = [
   {
     id: 3,
     name: "Studio 3",
-    subtitle: "Cours en petit groupe / coaching / répétitions ciblées",
+    subtitle: "Parfait pour les cours privés, répétitions ou petits groupes",
     size: "Moyen - 30m²",
     capacity: "6-10 personnes",
     pricePeak: "250 MAD/h",
@@ -70,7 +70,7 @@ export default function StudioSelection() {
       <div className="absolute top-20 right-10 w-64 h-64 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full blur-3xl" />
       <div className="absolute bottom-20 left-10 w-64 h-64 bg-gradient-to-br from-accent-500/10 to-tertiary-500/10 rounded-full blur-3xl" />
 
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 2xl:max-w-8xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -101,7 +101,7 @@ export default function StudioSelection() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl 2xl:max-w-8xl mx-auto items-stretch">
           {studios.map((studio, index) => (
             <motion.div
               key={studio.id}

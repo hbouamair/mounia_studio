@@ -108,16 +108,16 @@ export default function Hero() {
           opacity: isMobile ? 1 : opacity,
         }}
       >
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-8xl mx-auto w-full px-4 sm:px-6 lg:px-8 2xl:px-10">
           {/* Left-aligned content block: sits over video with clear hierarchy */}
           <motion.div
-            className="max-w-2xl"
+            className="max-w-2xl 2xl:max-w-3xl"
             variants={stagger}
             initial="initial"
             animate="animate"
           >
             {/* Block intégré à la vidéo : fond qui se fond avec l'image */}
-            <div className="relative w-full max-w-2xl mx-auto">
+            <div className="relative w-full max-w-2xl 2xl:max-w-3xl mx-auto">
               <div
                 className="relative rounded-[2rem] sm:rounded-[2.5rem] p-8 sm:p-10 md:p-12 backdrop-blur-xl border border-white/10 overflow-hidden"
                 style={{

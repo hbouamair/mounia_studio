@@ -5,7 +5,7 @@ const localBusinessSchema = {
   "@type": "DanceStudio",
   "@id": `${siteUrl}/#organization`,
   name: "RJ Studio",
-  description: "Studio de danse et location de studios à Casablanca. Cours de ballet, hip hop, danse contemporaine, jazz. Réservation en ligne à l'heure, demi-journée ou journée.",
+  description: "Premier open studio de danse et de bien-être à Casablanca. Studios entièrement équipés à la réservation pour professeurs indépendants, coachs et artistes. Réservation à l'heure ou en packs, 7j/7.",
   url: siteUrl,
   telephone: "+212661777421",
   email: "contact@studiorj.ma",

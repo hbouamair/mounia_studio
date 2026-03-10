@@ -11,8 +11,8 @@ export const metadata: Metadata = {
     default: "RJ Studio | Studio de Danse à Casablanca",
     template: "%s | RJ Studio",
   },
-  description: "Rejoignez RJ Studio, votre studio de danse professionnel à Casablanca. Cours de danse, location de studios, instructeurs experts. Transformez votre vie grâce à l'art de la danse.",
-  keywords: ["studio de danse", "danse Casablanca", "cours de danse", "location studio", "ballet", "hip hop", "danse contemporaine", "RJ Studio", "Casablanca", "réserver studio danse"],
+  description: "RJ Studio est le premier open studio de danse et de bien-être à Casablanca. Studios à la réservation pour professeurs indépendants et artistes. Location à l'heure ou en packs, 7j/7.",
+  keywords: ["open studio danse", "studio danse Casablanca", "location studio danse", "cours danse bien-être", "réservation studio", "RJ Studio", "Casablanca", "professeur indépendant", "atelier danse"],
   authors: [{ name: "RJ Studio", url: siteUrl }],
   creator: "RJ Studio",
   publisher: "RJ Studio",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName: "RJ Studio",
     title: "RJ Studio | Studio de Danse à Casablanca",
-    description: "Studio de danse et location de studios à Casablanca. Cours de ballet, hip hop, contemporain. Réservez en ligne.",
+    description: "Open studio de danse et bien-être à Casablanca. Location de studios à la réservation pour enseignants et artistes.",
     images: [
       {
         url: "/studio-image.jpg",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "RJ Studio | Studio de Danse à Casablanca",
-    description: "Studio de danse et location de studios à Casablanca. Cours et réservation en ligne.",
+    description: "Open studio de danse et bien-être à Casablanca. Studios à la réservation, 7j/7.",
   },
   robots: {
     index: true,

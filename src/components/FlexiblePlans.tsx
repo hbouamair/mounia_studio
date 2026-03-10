@@ -24,7 +24,7 @@ const studios: StudioPlan[] = [
   {
     id: "1",
     name: "Studio 1",
-    subtitle: "Cours collectifs / répétitions / workshops",
+    subtitle: "Idéal pour les groupes et les ateliers",
     pricePeak: "400 MAD/h",
     priceOffPeak: "300 MAD/h",
     size: "Grand - 49m²",
@@ -38,10 +38,10 @@ const studios: StudioPlan[] = [
   {
     id: "2",
     name: "Studio 2",
-    subtitle: "Cours collectifs standard / répétitions",
+    subtitle: "Parfait pour les cours de danse ou fitness en groupe",
     pricePeak: "300 MAD/h",
     priceOffPeak: "200 MAD/h",
-    size: "Moyen - 35m²",
+    size: "Moyen - 34m²",
     capacity: "7-12 personnes",
     offer: "Forfait 10h + 1h gratuite",
     image: "/studio-image.jpg",
@@ -52,7 +52,7 @@ const studios: StudioPlan[] = [
   {
     id: "3",
     name: "Studio 3",
-    subtitle: "Cours en petit groupe / coaching / répétitions ciblées",
+    subtitle: "Parfait pour les cours privés, répétitions ou petits groupes",
     pricePeak: "250 MAD/h",
     priceOffPeak: "150 MAD/h",
     size: "Moyen - 30m²",
@@ -218,7 +218,7 @@ export default function FlexiblePlans() {
         transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
       />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl 2xl:max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10">
         {/* Modern Header - 2026 Design */}
         <motion.div
           className="text-center mb-8 sm:mb-10"
@@ -289,7 +289,7 @@ export default function FlexiblePlans() {
         </motion.div>
         
         {/* Studio Cards — full width, stacked vertically */}
-        <div className="grid grid-cols-1 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 gap-8 max-w-7xl 2xl:max-w-8xl mx-auto">
           {studios.map((studio, index) => (
             <StudioPlanCard key={studio.id} studio={studio} index={index} />
           ))}

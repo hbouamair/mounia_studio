@@ -40,7 +40,7 @@ export default function FAQ() {
       <div className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full blur-3xl" />
       <div className="absolute bottom-10 right-10 w-72 h-72 bg-gradient-to-br from-accent-500/10 to-tertiary-500/10 rounded-full blur-3xl" />
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 2xl:max-w-8xl relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -73,7 +73,7 @@ export default function FAQ() {
         </motion.div>
 
         {/* FAQ List */}
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="max-w-4xl 2xl:max-w-5xl mx-auto space-y-4">
           {faqs.map((faq, index) => (
             <motion.div
               key={index}

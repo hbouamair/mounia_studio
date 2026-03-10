@@ -11,7 +11,7 @@ export default function MentionsLegalesPage() {
       <Navigation />
 
       <main className="relative pt-24 pb-16 min-h-screen">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 max-w-4xl">
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-medium mb-8 transition-colors"

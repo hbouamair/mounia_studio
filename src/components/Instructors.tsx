@@ -49,7 +49,7 @@ export default function Instructors() {
         style={{ y: y3 }}
       />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl 2xl:max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10">
         {/* Section Header */}
         <motion.div
           className="text-center mb-12 sm:mb-16 md:mb-20"
@@ -242,7 +242,7 @@ export default function Instructors() {
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          <div className="relative max-w-5xl mx-auto rounded-5xl overflow-hidden shadow-2xl">
+          <div className="relative max-w-5xl 2xl:max-w-6xl mx-auto rounded-5xl overflow-hidden shadow-2xl">
             {/* Beautiful vibrant gradient background */}
             <div className="absolute inset-0" style={{
               background: 'linear-gradient(135deg, #1E3A5F 0%, #2A9D8F 50%, #1E3A5F 100%)',

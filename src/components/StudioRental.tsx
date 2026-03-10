@@ -32,7 +32,7 @@ export default function StudioRental() {
         transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
       />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl 2xl:max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10">
         {/* Modern Header - 2026 Design */}
         <motion.div
           className="text-center mb-10 sm:mb-12"
@@ -105,7 +105,7 @@ export default function StudioRental() {
         
         {/* Modern Features Grid - 2026 Design */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-5xl mx-auto"
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-5xl 2xl:max-w-6xl mx-auto"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

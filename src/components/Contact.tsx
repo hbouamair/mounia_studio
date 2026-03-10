@@ -55,7 +55,7 @@ export default function Contact() {
       <div className="absolute inset-0 bg-gradient-to-b from-cream via-white to-cream" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(30,58,95,0.06),transparent_50%)]" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl 2xl:max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10">
         {/* Header */}
         <motion.div
           className="text-center mb-12 md:mb-16"

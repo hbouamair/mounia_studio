@@ -132,6 +132,13 @@ const config: Config = {
         "skeu-lg": "0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.08)",
         "inner-soft": "inset 0 2px 4px rgba(0, 0, 0, 0.05)",
       },
+      maxWidth: {
+        "8xl": "88rem",   /* 1408px - content cap on large screens */
+        "9xl": "96rem",   /* 1536px */
+      },
+      screens: {
+        "3xl": "1920px",
+      },
     },
   },
   plugins: [],
