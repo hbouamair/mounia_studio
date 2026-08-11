@@ -1,6 +1,9 @@
 /** Internal booking page - use this for all "Réserver" / "Book" links */
 export const BOOKING_URL = "/reservation";
 
+/** @deprecated Use BOOKING_URL — kept for older components (e.g. FormulesPreview). */
+export const PICKTIME_BOOKING_URL = BOOKING_URL;
+
 /**
  * Base path for the full site while coming soon is active.
  * Set to "" when launching publicly at root.
