@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Award, Heart, Star } from "lucide-react";
 import { instructors } from "@/data/instructors";
 import { useRef } from "react";
+import { BASE_PATH, BOOKING_URL } from "@/lib/constants";
 
 export default function Instructors() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -72,7 +73,7 @@ export default function Instructors() {
             whileHover={{ scale: 1.05, y: -2, boxShadow: "0 8px 20px rgba(30, 58, 95, 0.4)" }}
           >
             <Star className="w-4 h-4 fill-white text-white" style={{ color: '#ffffff' }} />
-            <span style={{ color: '#ffffff', fontWeight: 700 }}>World-Class Instructors</span>
+            <span style={{ color: '#ffffff', fontWeight: 700 }}>Professeurs & Artistes</span>
             <Star className="w-4 h-4 fill-white text-white" style={{ color: '#ffffff' }} />
           </motion.div>
           
@@ -85,10 +86,10 @@ export default function Instructors() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <span className="text-charcoal">Meet Your</span>
+              <span className="text-charcoal">Des professionnels</span>
               <br />
               <span className="relative inline-block">
-                <span className="text-secondary-500">Dance Mentors</span>
+                <span className="text-secondary-500">indépendants</span>
                 {/* Animated underline */}
                 <motion.div
                   className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 rounded-full"
@@ -109,8 +110,8 @@ export default function Instructors() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            Our passionate instructors bring decades of professional experience and a genuine love for teaching. 
-            <span className="block mt-2 text-secondary-500 font-medium">Each mentor is dedicated to your growth.</span>
+            RJ Studio met ses espaces à disposition de professeurs, coachs et artistes indépendants.
+            <span className="block mt-2 text-secondary-500 font-medium">Chacun organise ses propres cours, ateliers et répétitions en toute autonomie.</span>
           </motion.p>
         </motion.div>
         
@@ -159,19 +160,21 @@ export default function Instructors() {
                   {/* Content */}
                   <div className="relative h-full flex flex-col justify-end p-6 sm:p-8">
                     {/* Experience Badge */}
-                    <motion.div
-                      className="absolute top-4 right-4 px-4 py-2 rounded-full shadow-lg"
-                      style={{
-                        background: 'linear-gradient(135deg, #1E3A5F, #2A9D8F)',
-                        color: '#ffffff'
-                      }}
-                      whileHover={{ scale: 1.1, rotate: 5, boxShadow: "0 8px 20px rgba(30, 58, 95, 0.4)" }}
-                    >
-                      <div className="flex items-center gap-1.5 text-sm font-bold" style={{ color: '#ffffff' }}>
-                        <Award className="w-4 h-4 text-white fill-white" style={{ color: '#ffffff' }} />
-                        <span style={{ color: '#ffffff', fontWeight: 700 }}>{instructor.yearsExperience} years</span>
-                      </div>
-                    </motion.div>
+                    {instructor.yearsExperience > 0 && (
+                      <motion.div
+                        className="absolute top-4 right-4 px-4 py-2 rounded-full shadow-lg"
+                        style={{
+                          background: 'linear-gradient(135deg, #1E3A5F, #2A9D8F)',
+                          color: '#ffffff'
+                        }}
+                        whileHover={{ scale: 1.1, rotate: 5, boxShadow: "0 8px 20px rgba(30, 58, 95, 0.4)" }}
+                      >
+                        <div className="flex items-center gap-1.5 text-sm font-bold" style={{ color: '#ffffff' }}>
+                          <Award className="w-4 h-4 text-white fill-white" style={{ color: '#ffffff' }} />
+                          <span style={{ color: '#ffffff', fontWeight: 700 }}>{instructor.yearsExperience} ans</span>
+                        </div>
+                      </motion.div>
+                    )}
                     
                     {/* Decorative element */}
                     <motion.div
@@ -358,7 +361,7 @@ export default function Instructors() {
                     letterSpacing: '-0.03em'
                   }}
                 >
-                  Ready to Start Your
+                  Envie de commencer ?
                   <motion.span 
                     className="block text-white"
                     style={{
@@ -366,7 +369,7 @@ export default function Instructors() {
                       textShadow: '0 4px 20px rgba(0,0,0,0.8), 0 2px 10px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,1)'
                     }}
                   >
-                    Dance Journey?
+                    Prêt à réserver ?
                   </motion.span>
                 </motion.h3>
                 
@@ -382,7 +385,7 @@ export default function Instructors() {
                     fontWeight: 600
                   }}
                 >
-                  Join our community of passionate dancers and experience the transformative power of movement.
+                  Louez un studio ou consultez le planning des cours proposés par nos partenaires.
                 </motion.p>
               </div>
               
@@ -395,7 +398,7 @@ export default function Instructors() {
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
                 <motion.a
-                  href="#schedule"
+                  href={BOOKING_URL}
                   className="group relative w-full sm:w-auto px-10 sm:px-12 py-5 sm:py-6 text-base sm:text-lg font-bold rounded-full overflow-hidden shadow-xl"
                   style={{ 
                     background: 'linear-gradient(135deg, #2A9D8F, #1E3A5F)',
@@ -431,7 +434,7 @@ export default function Instructors() {
                 </motion.a>
                 
                 <motion.a
-                  href="#classes"
+                  href={`${BASE_PATH}/classes`}
                   className="group w-full sm:w-auto px-10 sm:px-12 py-5 sm:py-6 text-base sm:text-lg font-bold rounded-full border-2 backdrop-blur-md transition-all"
                   style={{ 
                     backgroundColor: 'rgba(255,255,255,0.9)',
@@ -448,7 +451,7 @@ export default function Instructors() {
                   }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  Browse Classes
+                  Voir les disciplines
                 </motion.a>
               </motion.div>
             </div>

@@ -3,7 +3,7 @@ export interface DanceClass {
   title: string;
   style: DanceStyle;
   instructor: string;
-  level: "Beginner" | "Intermediate" | "Advanced" | "All Levels";
+  level: string;
   duration: number; // in minutes
   description: string;
   image?: string;
@@ -39,7 +39,7 @@ export interface Instructor {
   id: string;
   name: string;
   title: string;
-  specialties: DanceStyle[];
+  specialties: string[];
   bio: string;
   image?: string;
   yearsExperience: number;

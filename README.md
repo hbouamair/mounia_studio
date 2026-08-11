@@ -42,6 +42,38 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Booking System Setup (Supabase + Resend)
+
+The `/reservation` booking flow and the `/admin` dashboard need a Supabase
+project and a Resend account.
+
+1. **Create a Supabase project** at [supabase.com](https://supabase.com) (free tier is fine).
+2. **Run the migration**: open *SQL Editor* in the Supabase dashboard, paste the
+   contents of [`supabase/migration.sql`](supabase/migration.sql) and run it.
+   This creates the `studios`, `bookings` and `settings` tables, RLS policies
+   and seeds the three studios with their current prices.
+3. **Create the admin user**: in Supabase go to *Authentication → Users →
+   Add user*, and create the account (email + password) you will use to log in
+   at `/admin/login`.
+4. **Configure environment variables**: copy `.env.example` to `.env.local`
+   and fill in:
+   - `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` +
+     `SUPABASE_SECRET_KEY` (Supabase → *Project Settings → API Keys*;
+     legacy anon/service_role key names also work)
+   - `RESEND_API_KEY` (emails: confirmations, notifications)
+   - `CRON_SECRET` (any long random string — protects `/api/cron/*`)
+   - `NEXT_PUBLIC_SITE_URL` (used for links inside emails)
+   On Vercel, add the same variables in *Project Settings → Environment Variables*.
+5. **Vercel Cron** (daily on Hobby plan — `0 7 * * *` ≈ 08:00 Casablanca):
+   - `/api/cron/daily` — expires unpaid bookings + sends session reminders
+   - Individual routes `/api/cron/expire-bookings` and `/api/cron/send-reminders` remain available for manual testing
+   - **Pro plan**: you can switch to hourly (`0 * * * *`) or split into separate crons in `vercel.json`
+6. **Reminder migration** (if DB already exists): run `supabase/reminder-migration.sql` in Supabase SQL Editor.
+7. **Admin dashboard**: log in at `/admin/login`. From there you can confirm /
+   cancel bookings (the client is emailed automatically), create manual
+   bookings, edit studio prices, opening hours, peak-hour windows
+   ("heures pleines"), payment details (PayPal / RIB) and view income stats.
+
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router)

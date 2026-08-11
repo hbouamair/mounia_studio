@@ -1,13 +1,29 @@
-/** Picktime booking page URL - use this for all "Réserver" / "Book" links */
-export const PICKTIME_BOOKING_URL =
-  "https://www.picktime.com/850babad-febe-4898-ba19-485e51aefd16";
+/** Internal booking page - use this for all "Réserver" / "Book" links */
+export const BOOKING_URL = "/reservation";
 
-/** Base path for the full site (secret route). Use '' for root, or '/preview' when site is behind coming soon. */
-export const BASE_PATH = "/preview";
+/**
+ * Base path for the full site while coming soon is active.
+ * Set to "" when launching publicly at root.
+ */
+export const BASE_PATH = "";
 
-/** WhatsApp contact — use format 212XXXXXXXXX (country code + number, no + or spaces) */
-export const WHATSAPP_NUMBER = "212661777421";
+/** Homepage URL — always use this for "Accueil" / logo links (never empty string). */
+export const HOME_URL = BASE_PATH || "/";
 
-/** Picktime "Book online" button image (official widget) */
-export const PICKTIME_BUTTON_IMAGE =
-  "https://www.picktime.com/img/widgetButtons/BookingPage/picktime-book-online-gray.png";
+/** Set to true to show Coming Soon at / and hide public routes */
+export const COMING_SOON = false;
+
+/** WhatsApp — country code + number, no + or spaces */
+export const WHATSAPP_NUMBER = "212663273503";
+
+export const CONTACT_PHONE_DISPLAY = "0663273503";
+export const CONTACT_PHONE_TEL = "+212663273503";
+export const CONTACT_EMAIL = "rjstudiomaroc@gmail.com";
+export const CONTACT_ADDRESS =
+  "Angle rue Ennahas Annahoui et rue Al Khalil, Maarif, Casablanca";
+/** Google Maps query — lat,lng for precise pin */
+export const CONTACT_MAP_QUERY = "33.580389,-7.635439";
+export const OPENING_HOURS_DISPLAY = "Lun-Dim · 8h-22h";
+
+/** RJ Studio on Instagram */
+export const INSTAGRAM_URL = "https://www.instagram.com/rjstudio.ma/";

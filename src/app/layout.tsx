@@ -1,7 +1,37 @@
 import type { Metadata } from "next";
+import { DM_Sans, Sora, Outfit, Caveat } from "next/font/google";
 import "./globals.css";
 import ConditionalWhatsApp from "@/components/ConditionalWhatsApp";
 import JsonLd from "@/components/JsonLd";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const sora = Sora({
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  variable: "--font-sora",
+  display: "swap",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-nav",
+  display: "swap",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["600"],
+  variable: "--font-signature",
+  display: "swap",
+  preload: false,
+});
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.rjstudio.ma";
 
@@ -54,9 +84,6 @@ export const metadata: Metadata = {
     // google: "votre-code-google",
     // yandex: "votre-code-yandex",
   },
-  alternates: {
-    canonical: siteUrl,
-  },
 };
 
 export default function RootLayout({
@@ -65,8 +92,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="scroll-smooth">
-      <body className="antialiased">
+    <html
+      lang="fr"
+      data-scroll-behavior="smooth"
+      className={`scroll-smooth ${dmSans.variable} ${sora.variable} ${outfit.variable} ${caveat.variable}`}
+    >
+      <body className={`${dmSans.className} antialiased`}>
         <JsonLd />
         {children}
         <ConditionalWhatsApp />

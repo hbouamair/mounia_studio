@@ -96,3 +96,24 @@ Analyse en tant qu’expert UI/UX et développeur web : points à supprimer, à 
 - Responsive et mise en page mobile propre.
 
 Si vous voulez, on peut enchaîner par des modifications concrètes dans le code (fichiers à toucher, extraits à remplacer) en commençant par les actions “Haute priorité”.
+
+---
+
+## Statut d'application (mis à jour)
+
+### Fait
+- **Code mort** : FormulesPreview, PicktimeBookButton, Schedule supprimés.
+- **BookingModal** : retiré de la page d'accueil (reste sur /classes).
+- **Footer** : adresse Rue Biranzarane, téléphone +212 661 77 77 21, email contact@studiorj.ma ; liens sociaux en Bientôt disponible ; Mentions légales / CGU.
+- **Contact (bandeau)** : téléphone mis à jour (+212 661 77 77 21).
+- **ClassCard** : View Schedule → Voir le planning.
+- **FAQ** : numéro dans la réponse demi-journée/journée mis à jour (+212 661 77 77 21).
+- **Accessibilité** : focus visible au clavier (outline) sur liens et boutons dans globals.css.
+- **WhyChooseUs** : cartes ont déjà ombre et bordure au survol.
+
+### Optionnel / à faire plus tard
+- **Mentions légales / CGU** : créer les pages et mettre les vrais liens dans le footer (actuellement #).
+- **About** : vérifier les chiffres (années, nombre de danseurs) avec le client.
+- **Images** : remplacer les URLs Unsplash des cartes studios par des images locales et next/image pour la prod.
+- **FAQ** : espacement entre paragraphes (margin-bottom) si les réponses s'allongent.
+- **Contraste** : valider avec axe DevTools ou WAVE si les couleurs changent.

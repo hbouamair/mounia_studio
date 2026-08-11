@@ -7,10 +7,6 @@ import { DanceStyle } from "@/data/types";
 import ClassCard from "./ClassCard";
 import { useRef } from "react";
 
-interface ClassesGridProps {
-  onBookClass: (classId: string) => void;
-}
-
 const danceStyles: (DanceStyle | "All")[] = [
   "All",
   "Ballet",
@@ -21,7 +17,17 @@ const danceStyles: (DanceStyle | "All")[] = [
   "Ballroom",
 ];
 
-export default function ClassesGrid({ onBookClass }: ClassesGridProps) {
+const styleLabels: Record<string, string> = {
+  All: "Tous",
+  Ballet: "Ballet",
+  "Hip Hop": "Hip-Hop",
+  Contemporary: "Contemporain",
+  Jazz: "Jazz",
+  Salsa: "Salsa",
+  Ballroom: "Fitness",
+};
+
+export default function ClassesGrid() {
   const [selectedStyle, setSelectedStyle] = useState<DanceStyle | "All">("All");
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -91,7 +97,7 @@ export default function ClassesGrid({ onBookClass }: ClassesGridProps) {
             >
               💃
             </motion.span>
-            <span style={{ color: '#ffffff', fontWeight: 600 }}>Our Classes</span>
+            <span style={{ color: '#ffffff', fontWeight: 600 }}>Nos Disciplines</span>
             <motion.span
               animate={{ rotate: [0, -10, 10, 0] }}
               transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
@@ -108,10 +114,10 @@ export default function ClassesGrid({ onBookClass }: ClassesGridProps) {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <span className="text-charcoal">Find Your</span>
+              <span className="text-charcoal">Découvrez nos</span>
               <br />
               <span className="relative inline-block">
-                <span className="text-primary-500">Perfect Class</span>
+                <span className="text-primary-500">Disciplines</span>
                 <motion.div
                   className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full"
                   initial={{ scaleX: 0 }}
@@ -130,8 +136,8 @@ export default function ClassesGrid({ onBookClass }: ClassesGridProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            From classical ballet to urban hip hop, explore our diverse range of dance styles.
-            <span className="block mt-2 text-primary-500 font-medium">Taught by world-class instructors.</span>
+            Du ballet au hip-hop, explorez les activités proposées par nos professeurs partenaires.
+            <span className="block mt-2 text-primary-500 font-medium">Consultez le planning en ligne pour les horaires à jour.</span>
           </motion.p>
         </motion.div>
         
@@ -164,7 +170,7 @@ export default function ClassesGrid({ onBookClass }: ClassesGridProps) {
               whileTap={{ scale: 0.95 }}
               layoutId={selectedStyle === style ? "activeFilter" : undefined}
             >
-              {style}
+              {styleLabels[style] ?? style}
             </motion.button>
           ))}
         </motion.div>
@@ -179,7 +185,6 @@ export default function ClassesGrid({ onBookClass }: ClassesGridProps) {
               key={danceClass.id}
               danceClass={danceClass}
               index={index}
-              onBook={() => onBookClass(danceClass.id)}
             />
           ))}
         </motion.div>

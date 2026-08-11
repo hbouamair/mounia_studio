@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Caveat:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,12 +7,13 @@
   --font-sora: 'Sora', sans-serif;
   --font-nav: 'Outfit', sans-serif;
   --font-signature: 'Caveat', cursive;
+  --warm-gold: #F2E7AF;
 }
 
 body {
   @apply bg-cream text-charcoal;
   font-family: var(--font-body);
-  background: linear-gradient(180deg, #FDFBF7 0%, #FFFFFF 50%, #FDFBF7 100%);
+  background: linear-gradient(180deg, #FDFBF7 0%, #FFFFFF 50%, #F2E7AF33 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -49,6 +48,32 @@ body {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
+
+  /* Navbar — frosted glass on scroll */
+  .nav-glass {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow:
+      0 4px 24px rgba(30, 58, 95, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+
+  .nav-glass-dark {
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .nav-glass-menu {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 12px 40px rgba(30, 58, 95, 0.1);
+  }
   
   .gradient-soft {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(253, 251, 247, 0.95) 100%);
@@ -56,7 +81,7 @@ body {
   
   .skeu-card {
     @apply bg-white rounded-4xl shadow-skeu-md;
-    background: linear-gradient(145deg, #ffffff 0%, #fdfbf7 100%);
+    background: linear-gradient(145deg, #ffffff 0%, #fdfbf7 55%, #f2e7af 100%);
     border: 1px solid rgba(255, 255, 255, 0.8);
   }
   
@@ -94,6 +119,34 @@ body {
     background-size: 200% 200%;
     animation: gradientShift 15s ease infinite;
   }
+
+  .animate-scroll-cue {
+    animation: scrollCue 2s ease-in-out infinite;
+  }
+
+  .animate-scroll-dot {
+    animation: scrollDot 2s ease-in-out infinite;
+  }
+
+  .animate-fade-up {
+    animation: fadeUpFast 0.35s ease-out forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in {
+    animation: fadeInFast 0.2s ease-out forwards;
+  }
+
+  .stagger-1 { animation-delay: 0.04s; }
+  .stagger-2 { animation-delay: 0.08s; }
+  .stagger-3 { animation-delay: 0.12s; }
+  .stagger-4 { animation-delay: 0.16s; }
+  .stagger-5 { animation-delay: 0.22s; }
+
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
+  }
 }
 
 @keyframes fadeInUp {
@@ -107,6 +160,22 @@ body {
   }
 }
 
+@keyframes fadeUpFast {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInFast {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @keyframes gradientShift {
   0% {
     background-position: 0% 50%;
@@ -116,6 +185,26 @@ body {
   }
   100% {
     background-position: 0% 50%;
+  }
+}
+
+@keyframes scrollCue {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes scrollDot {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 0.3;
   }
 }
 
@@ -164,3 +253,626 @@ button:focus-visible {
 }
 
 /* Contraste : valider avec axe DevTools ou WAVE si vous changez les couleurs (texte sur fond, dégradés). */
+
+/* ------------------------------------------------------------------ */
+/* Admin 2026 — « La Régie » : console sombre, verre et lumière scène */
+/* ------------------------------------------------------------------ */
+@layer components {
+  .admin-shell {
+    @apply min-h-screen;
+    color: #e9edf5;
+    color-scheme: dark;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+    background:
+      radial-gradient(ellipse 70% 45% at 88% -8%, rgba(42, 157, 143, 0.16), transparent 58%),
+      radial-gradient(ellipse 55% 42% at -5% 2%, rgba(30, 58, 95, 0.45), transparent 55%),
+      radial-gradient(ellipse 65% 45% at 50% 112%, rgba(231, 111, 81, 0.07), transparent 60%),
+      #0a0d14;
+  }
+
+  .admin-shell ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .admin-shell ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .admin-shell ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+  }
+
+  .admin-shell ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.24);
+  }
+
+  .admin-scroll-area {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+  }
+
+  .admin-scroll-area::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .admin-scroll-area::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .admin-scroll-area::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+  }
+
+  .admin-scroll-area::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.24);
+  }
+
+  .admin-card {
+    @apply rounded-2xl;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.028) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 12px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .admin-card-soft {
+    @apply rounded-2xl;
+    background: rgba(13, 17, 26, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  .admin-kpi {
+    @apply admin-card p-5 relative overflow-hidden transition-all duration-200;
+  }
+
+  .admin-kpi:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 16px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .admin-input {
+    @apply w-full px-3.5 py-2.5 rounded-xl text-sm transition-all duration-200;
+    color: #e9edf5;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .admin-input::placeholder {
+    color: rgba(233, 237, 245, 0.35);
+  }
+
+  .admin-input:hover {
+    border-color: rgba(45, 212, 191, 0.3);
+  }
+
+  .admin-input:focus {
+    @apply outline-none;
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(45, 212, 191, 0.55);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.14);
+  }
+
+  .admin-input option {
+    background: #10141d;
+    color: #e9edf5;
+  }
+
+  .admin-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold font-nav
+      transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .admin-btn-primary {
+    @apply admin-btn px-5 py-2.5 text-white;
+    background: linear-gradient(135deg, #2a9d8f 0%, #1e3a5f 120%);
+    border: 1px solid rgba(45, 212, 191, 0.35);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      0 6px 20px rgba(42, 157, 143, 0.3);
+  }
+
+  .admin-btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 10px 26px rgba(42, 157, 143, 0.4);
+  }
+
+  .admin-btn-ghost {
+    @apply admin-btn px-4 py-2.5;
+    color: #e9edf5;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .admin-btn-ghost:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(45, 212, 191, 0.35);
+  }
+
+  .admin-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold tracking-wide;
+  }
+
+  .admin-badge-pending {
+    @apply admin-badge;
+    color: #fcd34d;
+    background: rgba(245, 176, 76, 0.12);
+    border: 1px solid rgba(245, 176, 76, 0.3);
+  }
+
+  .admin-badge-confirmed {
+    @apply admin-badge;
+    color: #5eead4;
+    background: rgba(45, 212, 191, 0.1);
+    border: 1px solid rgba(45, 212, 191, 0.3);
+  }
+
+  .admin-badge-completed {
+    @apply admin-badge;
+    color: #7dd3fc;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+  }
+
+  .admin-badge-cancelled {
+    @apply admin-badge;
+    color: #fda4af;
+    background: rgba(251, 113, 133, 0.1);
+    border: 1px solid rgba(251, 113, 133, 0.28);
+  }
+
+  .admin-badge-neutral {
+    @apply admin-badge;
+    color: rgba(233, 237, 245, 0.45);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .admin-sidebar-link {
+    @apply flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold font-nav
+      transition-all duration-200 cursor-pointer;
+  }
+
+  .admin-page-title {
+    @apply text-2xl sm:text-3xl font-display font-bold tracking-tight;
+    color: #f4f6fb;
+  }
+
+  .admin-page-subtitle {
+    @apply text-sm mt-1;
+    color: rgba(233, 237, 245, 0.48);
+  }
+
+  .admin-eyebrow {
+    @apply text-[11px] font-bold uppercase tracking-[0.18em] mb-1.5;
+    color: rgba(94, 234, 212, 0.75);
+  }
+
+  /* Pulse du jour — piste d'occupation par studio */
+  .admin-track {
+    @apply relative h-9 rounded-lg overflow-hidden;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.04) 0,
+        rgba(255, 255, 255, 0.04) 1px,
+        transparent 1px,
+        transparent 12.5%
+      ),
+      rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .admin-track-seg {
+    @apply absolute inset-y-1 rounded-md;
+  }
+
+  .admin-track-seg-pending {
+    background: linear-gradient(180deg, rgba(245, 176, 76, 0.75), rgba(245, 176, 76, 0.45));
+    box-shadow: 0 0 12px rgba(245, 176, 76, 0.35);
+  }
+
+  .admin-track-seg-confirmed {
+    background: linear-gradient(180deg, rgba(45, 212, 191, 0.8), rgba(42, 157, 143, 0.5));
+    box-shadow: 0 0 12px rgba(45, 212, 191, 0.35);
+  }
+
+  .admin-track-seg-completed {
+    background: linear-gradient(180deg, rgba(56, 189, 248, 0.4), rgba(56, 189, 248, 0.2));
+  }
+
+  .admin-track-now {
+    @apply absolute inset-y-0 w-px;
+    background: #e76f51;
+    box-shadow: 0 0 8px rgba(231, 111, 81, 0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-kpi,
+  .admin-btn-primary,
+  .admin-sidebar-link {
+    transition: none !important;
+  }
+  .admin-kpi:hover,
+  .admin-btn-primary:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Booking Soft UI Evolution (2026) — public reservation flow         */
+/* ------------------------------------------------------------------ */
+@layer components {
+  .book-shell {
+    @apply relative min-h-screen;
+    background:
+      radial-gradient(ellipse 80% 50% at 0% 0%, rgba(30, 58, 95, 0.09), transparent 55%),
+      radial-gradient(ellipse 60% 45% at 100% 5%, rgba(42, 157, 143, 0.1), transparent 50%),
+      radial-gradient(ellipse 40% 30% at 50% 100%, rgba(231, 111, 81, 0.04), transparent 55%),
+      linear-gradient(180deg, #f5f7fb 0%, #faf9f6 42%, #f0f4f8 100%);
+  }
+
+  .book-kicker {
+    @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.14em];
+    background: color-mix(in srgb, var(--warm-gold) 55%, white);
+    border: 1px solid color-mix(in srgb, var(--warm-gold) 80%, transparent);
+    color: #5c6b7a;
+    box-shadow: 0 1px 2px rgba(26, 26, 26, 0.04);
+  }
+
+  .book-frame {
+    @apply relative rounded-[2rem] overflow-hidden;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    box-shadow:
+      0 0 0 1px rgba(26, 26, 26, 0.04),
+      0 24px 64px rgba(30, 58, 95, 0.1),
+      0 8px 24px rgba(26, 26, 26, 0.04);
+    backdrop-filter: blur(20px);
+  }
+
+  .book-frame-inner {
+    @apply p-5 sm:p-8 md:p-10;
+  }
+
+  .book-card {
+    @apply rounded-3xl bg-white;
+    border: 1px solid rgba(26, 26, 26, 0.06);
+    box-shadow:
+      0 1px 2px rgba(26, 26, 26, 0.04),
+      0 12px 32px rgba(26, 26, 26, 0.05);
+  }
+
+  .book-panel {
+    @apply rounded-2xl;
+    background: linear-gradient(180deg, rgba(247, 248, 251, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+    border: 1px solid rgba(26, 26, 26, 0.06);
+  }
+
+  .book-panel-accent {
+    @apply rounded-2xl;
+    background: linear-gradient(135deg, rgba(30, 58, 95, 0.04) 0%, rgba(42, 157, 143, 0.06) 100%);
+    border: 1px solid rgba(42, 157, 143, 0.12);
+  }
+
+  .book-option-card {
+    @apply book-card text-left p-6 sm:p-8 cursor-pointer transition-all duration-300;
+  }
+
+  .book-option-card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 1px 2px rgba(26, 26, 26, 0.04),
+      0 20px 40px rgba(30, 58, 95, 0.12);
+  }
+
+  .book-option-card--selected {
+    @apply ring-2 ring-primary-500 ring-offset-2 ring-offset-white;
+    box-shadow:
+      0 0 0 1px rgba(30, 58, 95, 0.08),
+      0 16px 40px rgba(30, 58, 95, 0.14);
+  }
+
+  .book-badge {
+    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-charcoal;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(26, 26, 26, 0.06);
+    box-shadow: 0 1px 3px rgba(26, 26, 26, 0.04);
+  }
+
+  .book-section-head {
+    @apply flex items-center gap-3 font-display font-bold text-charcoal mb-5;
+  }
+
+  .book-section-icon {
+    @apply w-10 h-10 rounded-2xl flex items-center justify-center shrink-0;
+    background: linear-gradient(135deg, rgba(30, 58, 95, 0.08) 0%, rgba(42, 157, 143, 0.1) 100%);
+  }
+
+  .book-step-header {
+    @apply flex items-start justify-between gap-4 mb-6 sm:mb-8;
+  }
+
+  .book-step-title {
+    @apply font-display font-bold text-xl sm:text-2xl text-charcoal tracking-tight;
+  }
+
+  .book-step-desc {
+    @apply text-sm sm:text-base text-soft-charcoal mt-1.5 leading-relaxed max-w-xl;
+  }
+
+  .book-step-track {
+    @apply flex items-start justify-between gap-1 sm:gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1;
+    scrollbar-width: none;
+  }
+
+  .book-step-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .book-step-item {
+    @apply flex-1 flex flex-col items-center gap-2 min-w-[3.25rem] sm:min-w-0;
+  }
+
+  .book-step-dot {
+    @apply w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(26, 26, 26, 0.1);
+    color: #5c6b7a;
+  }
+
+  .book-step-dot--active {
+    @apply text-white scale-105;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2a9d8f 100%);
+    border-color: transparent;
+    box-shadow: 0 8px 20px rgba(30, 58, 95, 0.28);
+  }
+
+  .book-step-dot--done {
+    @apply text-white;
+    background: #2a9d8f;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.3);
+  }
+
+  .book-step-label {
+    @apply text-[10px] sm:text-[11px] font-semibold font-nav truncate max-w-full text-center leading-tight;
+  }
+
+  .book-step-label--muted {
+    color: #8a96a3;
+  }
+
+  .book-progress-track {
+    @apply h-1.5 rounded-full overflow-hidden mx-2 sm:mx-6;
+    background: rgba(26, 26, 26, 0.06);
+  }
+
+  .book-progress-fill {
+    @apply h-full rounded-full;
+    background: linear-gradient(90deg, #1e3a5f 0%, #2a9d8f 55%, #38bdf8 100%);
+  }
+
+  .book-slot-item {
+    @apply rounded-2xl px-3.5 py-3;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(26, 26, 26, 0.06);
+    box-shadow: 0 2px 8px rgba(26, 26, 26, 0.03);
+  }
+
+  .book-slot-index {
+    @apply w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold mt-0.5;
+    background: linear-gradient(135deg, rgba(30, 58, 95, 0.1) 0%, rgba(42, 157, 143, 0.14) 100%);
+    color: #1e3a5f;
+  }
+
+  .book-cal-nav {
+    @apply min-w-11 min-h-11 flex items-center justify-center rounded-2xl transition-all duration-200 cursor-pointer;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(26, 26, 26, 0.08);
+  }
+
+  .book-cal-nav:hover:not(:disabled) {
+    background: #ffffff;
+    border-color: rgba(30, 58, 95, 0.2);
+    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.08);
+  }
+
+  .book-cal-nav:disabled {
+    @apply opacity-30 cursor-not-allowed;
+  }
+
+  .book-cal-day {
+    @apply relative aspect-square min-h-10 rounded-2xl text-sm font-semibold transition-all duration-200;
+  }
+
+  .book-cal-day--selected {
+    @apply text-white;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2a9d8f 100%);
+    box-shadow: 0 6px 16px rgba(30, 58, 95, 0.28);
+  }
+
+  .book-cal-day--marked {
+    @apply text-secondary-700 cursor-pointer;
+    background: rgba(42, 157, 143, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(42, 157, 143, 0.2);
+  }
+
+  .book-cal-day--today {
+    @apply text-primary-600 cursor-pointer;
+    background: rgba(30, 58, 95, 0.06);
+  }
+
+  .book-cal-day--idle {
+    @apply text-charcoal cursor-pointer hover:bg-primary-50;
+  }
+
+  .book-cal-day--disabled {
+    @apply text-charcoal/20 cursor-not-allowed;
+  }
+
+  .book-summary {
+    @apply book-card p-5 sm:p-6 lg:sticky lg:top-28 space-y-4;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  }
+
+  .book-price-hero {
+    @apply book-panel-accent p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4;
+  }
+
+  .book-input {
+    @apply w-full px-4 py-3 rounded-2xl text-sm text-charcoal transition-all duration-200;
+    background: #f7f8fb;
+    border: 1px solid rgba(26, 26, 26, 0.07);
+  }
+
+  .book-input:hover {
+    border-color: rgba(30, 58, 95, 0.22);
+  }
+
+  .book-input:focus {
+    @apply outline-none bg-white;
+    border-color: rgba(30, 58, 95, 0.45);
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12);
+  }
+
+  .book-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-3.5
+      text-sm font-semibold font-nav text-white cursor-pointer
+      transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2a9d8f 100%);
+    box-shadow: 0 8px 22px rgba(30, 58, 95, 0.22);
+  }
+
+  .book-btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(30, 58, 95, 0.28);
+  }
+
+  .book-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3.5
+      text-sm font-semibold font-nav text-charcoal cursor-pointer
+      transition-all duration-200;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(26, 26, 26, 0.08);
+  }
+
+  .book-btn-ghost:hover {
+    background: #ffffff;
+    border-color: rgba(30, 58, 95, 0.2);
+    box-shadow: 0 4px 14px rgba(30, 58, 95, 0.06);
+  }
+
+  .book-chip {
+    @apply inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold
+      transition-all duration-200 cursor-pointer min-h-11;
+  }
+
+  .book-chip-active {
+    @apply book-chip text-white;
+    background: linear-gradient(135deg, #1e3a5f 0%, #234a72 100%);
+    box-shadow: 0 6px 16px rgba(30, 58, 95, 0.25);
+  }
+
+  .book-chip-idle {
+    @apply book-chip text-charcoal;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(26, 26, 26, 0.08);
+  }
+
+  .book-chip-idle:hover {
+    border-color: rgba(30, 58, 95, 0.35);
+    background: rgba(30, 58, 95, 0.04);
+  }
+
+  .book-pay-option {
+    @apply p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer min-h-[5.5rem];
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(26, 26, 26, 0.08);
+  }
+
+  .book-pay-option:hover {
+    background: #ffffff;
+    border-color: rgba(30, 58, 95, 0.22);
+    box-shadow: 0 8px 20px rgba(30, 58, 95, 0.06);
+  }
+
+  .book-pay-option--selected {
+    border-color: rgba(30, 58, 95, 0.45);
+    background: linear-gradient(180deg, rgba(30, 58, 95, 0.06) 0%, rgba(42, 157, 143, 0.05) 100%);
+    box-shadow: 0 0 0 1px rgba(30, 58, 95, 0.12);
+  }
+
+  .book-confirm {
+    @apply book-card p-8 sm:p-12 text-center relative overflow-hidden;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafb 100%);
+  }
+
+  .book-confirm-glow {
+    @apply pointer-events-none absolute inset-0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(42, 157, 143, 0.12), transparent 70%);
+  }
+
+  .book-text {
+    color: #1a2332;
+  }
+
+  .book-text-muted {
+    color: #5c6b7a;
+  }
+
+  .book-detail-icon {
+    @apply w-9 h-9 rounded-xl flex items-center justify-center shrink-0;
+    background: linear-gradient(135deg, rgba(30, 58, 95, 0.08) 0%, rgba(42, 157, 143, 0.1) 100%);
+    color: #1e3a5f;
+  }
+
+  .book-status {
+    @apply inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-sm font-bold;
+  }
+
+  .book-status--pending {
+    background: rgba(245, 158, 11, 0.14);
+    color: #b45309;
+  }
+
+  .book-status--confirmed {
+    background: rgba(42, 157, 143, 0.14);
+    color: #0f766e;
+  }
+
+  .book-status--cancelled {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-gradient-slow,
+  .animate-scroll-cue,
+  .animate-scroll-dot {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .book-btn-primary:hover:not(:disabled) {
+    transform: none;
+  }
+}

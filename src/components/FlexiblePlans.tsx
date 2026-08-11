@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Music, Users, Sparkles, Check, ArrowRight } from "lucide-react";
-import { PICKTIME_BOOKING_URL } from "@/lib/constants";
+import { BOOKING_URL } from "@/lib/constants";
 import { useState } from "react";
 
 interface StudioPlan {
@@ -173,9 +173,7 @@ function StudioPlanCard({ studio, index }: { studio: StudioPlan; index: number }
           </ul>
 
           <motion.a
-            href={PICKTIME_BOOKING_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={BOOKING_URL}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className={`mt-4 w-full flex items-center justify-center gap-2 px-6 py-4 text-lg font-semibold rounded-xl shadow-md hover:shadow-lg transition-shadow bg-gradient-to-r ${studio.color} text-white font-nav`}

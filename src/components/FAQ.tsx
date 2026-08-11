@@ -20,11 +20,7 @@ const faqs = [
   },
   {
     question: "Puis-je annuler ma réservation ?",
-    answer: "Annulation gratuite jusqu'à 72 h avant la session. Entre 24 h et 48 h : 50 % du paiement retenu. Moins de 24 h : aucun remboursement."
-  },
-  {
-    question: "Comment réserver un studio à la demi-journée ou à la journée ?",
-    answer: "Les réservations à la demi-journée ou à la journée se font uniquement sur devis.\n\nMerci de nous contacter par téléphone ou WhatsApp : +212 661 77 77 21."
+    answer: "Annulation gratuite jusqu'à 72 h avant la session. Entre 24 h et 72 h avant la session : 50 % du montant retenu. Moins de 24 h avant la session : aucun remboursement."
   }
 ];
 
@@ -84,20 +80,25 @@ export default function FAQ() {
               transition={{ duration: 0.5, delay: index * 0.05 }}
             >
               <motion.div
-                className="skeu-card overflow-hidden cursor-pointer"
+                className="skeu-card overflow-hidden"
                 whileHover={{ scale: 1.01 }}
-                onClick={() => toggleFAQ(index)}
               >
-                {/* Question */}
-                <div className="flex items-center justify-between p-6">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between p-6 text-left cursor-pointer"
+                  onClick={() => toggleFAQ(index)}
+                  aria-expanded={openIndex === index}
+                  aria-controls={`faq-answer-${index}`}
+                >
                   <h3 className="text-lg md:text-xl font-display font-semibold text-charcoal pr-8">
                     {faq.question}
                   </h3>
-                  
+
                   <motion.div
                     animate={{ rotate: openIndex === index ? 180 : 0 }}
                     transition={{ duration: 0.3 }}
                     className="flex-shrink-0"
+                    aria-hidden
                   >
                     {openIndex === index ? (
                       <Minus className="w-6 h-6 text-primary-500" />
@@ -105,12 +106,13 @@ export default function FAQ() {
                       <Plus className="w-6 h-6 text-primary-500" />
                     )}
                   </motion.div>
-                </div>
+                </button>
 
                 {/* Answer */}
                 <AnimatePresence>
                   {openIndex === index && (
                     <motion.div
+                      id={`faq-answer-${index}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
@@ -151,20 +153,13 @@ export default function FAQ() {
           <p className="text-soft-charcoal mb-4 text-lg">
             Vous avez d&apos;autres questions ?
           </p>
-            <motion.a
+            <a
             href={`${BASE_PATH}/contact`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-2 px-10 py-5 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold font-nav rounded-full shadow-lg hover:shadow-xl transition-shadow"
+            className="inline-flex items-center gap-2 px-10 py-5 bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold font-nav rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-[1.05] active:scale-[0.95]"
           >
             Contactez-nous
-            <motion.span
-              animate={{ x: [0, 5, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              →
-            </motion.span>
-          </motion.a>
+            <span className="transition-transform group-hover:translate-x-1">→</span>
+          </a>
         </motion.div>
       </div>
     </section>

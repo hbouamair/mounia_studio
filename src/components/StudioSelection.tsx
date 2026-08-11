@@ -2,9 +2,9 @@
 
 import { motion } from "framer-motion";
 import { Music, Users, Sparkles, Check, ArrowRight } from "lucide-react";
-import { PICKTIME_BOOKING_URL } from "@/lib/constants";
+import Image from "next/image";
+import { BOOKING_URL } from "@/lib/constants";
 import { BASE_PATH } from "@/lib/constants";
-import { useState } from "react";
 
 const studios = [
   {
@@ -64,8 +64,6 @@ const studios = [
 ];
 
 export default function StudioSelection() {
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
-
   return (
     <section id="studios-selection" className="relative py-24 md:py-32 overflow-hidden bg-cream">
       <div className="absolute top-20 right-10 w-64 h-64 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 rounded-full blur-3xl" />
@@ -110,9 +108,7 @@ export default function StudioSelection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              onHoverStart={() => setHoveredId(studio.id)}
-              onHoverEnd={() => setHoveredId(null)}
-              className="relative h-full flex flex-col"
+              className="relative h-full flex flex-col group/card"
             >
               {studio.popular && (
                 <motion.div
@@ -129,19 +125,18 @@ export default function StudioSelection() {
                 </motion.div>
               )}
 
-              <motion.div
-                whileHover={{ y: -8 }}
-                className={`relative skeu-card overflow-hidden flex flex-col h-full ${
+              <div
+                className={`relative skeu-card overflow-hidden flex flex-col h-full transition-transform group-hover/card:-translate-y-2 ${
                   studio.popular ? "ring-2 ring-accent-500 ring-offset-4 ring-offset-cream" : ""
                 }`}
               >
                 <div className="relative h-48 overflow-hidden flex-shrink-0">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-500"
-                    style={{
-                      backgroundImage: `url("${studio.image}")`,
-                      transform: hoveredId === studio.id ? "scale(1.1)" : "scale(1)"
-                    }}
+                  <Image
+                    src={studio.image}
+                    alt={studio.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover/card:scale-110"
                   />
                   <div className={`absolute inset-0 bg-gradient-to-t ${studio.color} opacity-60`} />
                   <div className="absolute inset-0 flex flex-col justify-end p-6">
@@ -204,18 +199,14 @@ export default function StudioSelection() {
                   </ul>
 
                   <motion.a
-                    href={PICKTIME_BOOKING_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`mt-auto w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r ${studio.color} text-white font-semibold font-nav rounded-xl shadow-md hover:shadow-lg transition-shadow`}
+                    href={BOOKING_URL}
+                    className={`mt-auto w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r ${studio.color} text-white font-semibold font-nav rounded-xl shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]`}
                   >
                     <span>Réserver</span>
                     <ArrowRight className="w-4 h-4" />
                   </motion.a>
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -231,14 +222,12 @@ export default function StudioSelection() {
           <p className="text-soft-charcoal mb-4">
             Besoin d&apos;aide pour choisir ?
           </p>
-          <motion.a
+          <a
             href={`${BASE_PATH}/contact`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white border-2 border-primary-500 text-primary-500 font-semibold font-nav rounded-full shadow-md hover:bg-primary-500 hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-white border-2 border-primary-500 text-primary-500 font-semibold font-nav rounded-full shadow-md hover:bg-primary-500 hover:text-white transition-colors hover:scale-[1.05] active:scale-[0.95]"
           >
             Contactez-nous
-          </motion.a>
+          </a>
         </motion.div>
       </div>
     </section>
