@@ -1,4 +1,5 @@
 import type { OpeningHours, PeakWindow, Settings, Studio } from "./types";
+import { FIRST_BOOKABLE_DATE } from "@/lib/constants";
 
 /**
  * Pure pricing / availability helpers, shared by the booking wizard (client)
@@ -161,7 +162,9 @@ export function computeAvailableStartTimes(options: {
   const { date: todayLocal, minutes: nowMinutes } = nowInStudioTime(
     options.now
   );
-  if (date < todayLocal) return [];
+  const minBookableDate =
+    todayLocal > FIRST_BOOKABLE_DATE ? todayLocal : FIRST_BOOKABLE_DATE;
+  if (date < minBookableDate) return [];
   const minStart =
     date === todayLocal ? nowMinutes + MIN_LEAD_MINUTES : opening.open;
 

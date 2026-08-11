@@ -33,3 +33,9 @@ export const OPENING_HOURS_DISPLAY = "Lun-Dim · 8h-22h";
 
 /** RJ Studio on Instagram */
 export const INSTAGRAM_URL = "https://www.instagram.com/rjstudio.ma/";
+
+/**
+ * First date clients can book (inclusive).
+ * Calendar and API reject earlier dates; after this day passes, booking from "today" resumes.
+ */
+export const FIRST_BOOKABLE_DATE = "2026-09-01";

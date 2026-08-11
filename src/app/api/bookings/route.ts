@@ -18,6 +18,7 @@ import {
   nowInStudioTime,
   openingForDate,
 } from "@/lib/booking/pricing";
+import { FIRST_BOOKABLE_DATE } from "@/lib/constants";
 import {
   expireStalePendingBookings,
   fetchBusySlots,
@@ -225,13 +226,18 @@ async function validateSlotAvailability(options: {
   }
 
   const { date: todayLocal, minutes: nowMinutes } = nowInStudioTime();
+  const minBookableDate =
+    todayLocal > FIRST_BOOKABLE_DATE ? todayLocal : FIRST_BOOKABLE_DATE;
   if (
-    date < todayLocal ||
+    date < minBookableDate ||
     (date === todayLocal && startMinutes < nowMinutes + MIN_LEAD_MINUTES)
   ) {
     return {
       ok: false,
-      error: "Un créneau n'est plus disponible (trop proche ou passé).",
+      error:
+        date < FIRST_BOOKABLE_DATE && todayLocal < FIRST_BOOKABLE_DATE
+          ? "Les réservations ouvrent à partir du 1er septembre 2026."
+          : "Un créneau n'est plus disponible (trop proche ou passé).",
       status: 400,
     };
   }

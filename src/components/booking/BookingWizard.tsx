@@ -11,7 +11,6 @@ import {
   getDay,
   isBefore,
   isSameDay,
-  isSameMonth,
   startOfMonth,
   startOfToday,
 } from "date-fns";
@@ -59,7 +58,18 @@ import {
 } from "@/lib/booking/discounts";
 import { getStudioImages } from "@/lib/booking/studio-images";
 import StudioImageCarousel from "@/components/studios/StudioImageCarousel";
-import { CONTACT_ADDRESS } from "@/lib/constants";
+import { CONTACT_ADDRESS, FIRST_BOOKABLE_DATE } from "@/lib/constants";
+
+function parseYmdLocal(ymd: string): Date {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function getMinBookableDay(): Date {
+  const today = startOfToday();
+  const first = parseYmdLocal(FIRST_BOOKABLE_DATE);
+  return isBefore(today, first) ? first : today;
+}
 
 interface Props {
   studios: Studio[];
@@ -128,7 +138,7 @@ export default function BookingWizard({ studios, settings }: Props) {
   const [sessionMode, setSessionMode] = useState<SessionMode | null>(null);
   const [studio, setStudio] = useState<Studio | null>(null);
 
-  const [month, setMonth] = useState(() => startOfMonth(new Date()));
+  const [month, setMonth] = useState(() => startOfMonth(getMinBookableDay()));
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [duration, setDuration] = useState(60);
   const [startMinutes, setStartMinutes] = useState<number | null>(null);
@@ -1641,6 +1651,8 @@ function MonthCalendar({
 }) {
   const marked = new Set(markedDates);
   const today = startOfToday();
+  const minBookable = getMinBookableDay();
+  const minMonth = startOfMonth(minBookable);
   const maxMonth = startOfMonth(addMonths(today, 6));
   const days = eachDayOfInterval({
     start: startOfMonth(month),
@@ -1654,7 +1666,7 @@ function MonthCalendar({
         <button
           type="button"
           onClick={() => onMonthChange(addMonths(month, -1))}
-          disabled={isSameMonth(month, today)}
+          disabled={!isBefore(minMonth, startOfMonth(month))}
           className="book-cal-nav"
           aria-label="Mois précédent"
         >
@@ -1687,7 +1699,7 @@ function MonthCalendar({
         {days.map((day) => {
           const dateStr = format(day, "yyyy-MM-dd");
           const closed = !settings.opening_hours[String(getDay(day))];
-          const disabled = isBefore(day, today) || closed;
+          const disabled = isBefore(day, minBookable) || closed;
           const isSelected =
             selectedDate !== null &&
             isSameDay(day, parseDateString(selectedDate));
