@@ -1,5 +1,6 @@
 import { fetchSettings } from "@/lib/booking/db";
 import SettingsForm from "@/components/admin/SettingsForm";
+import ResetBookingsButton from "@/components/admin/ResetBookingsButton";
 import AdminDbError from "@/components/admin/AdminDbError";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,7 @@ export default async function AdminSettingsPage() {
           </p>
         </div>
         <SettingsForm settings={settings} />
+        <ResetBookingsButton />
       </div>
     );
   } catch (err) {

@@ -1,8 +1,11 @@
 /** Internal booking page - use this for all "Réserver" / "Book" links */
 export const BOOKING_URL = "/reservation";
 
-/** @deprecated Use BOOKING_URL — kept for older components (e.g. FormulesPreview). */
+/** @deprecated Use BOOKING_URL — kept for older Picktime-era components. */
 export const PICKTIME_BOOKING_URL = BOOKING_URL;
+
+/** @deprecated Legacy Picktime widget image — kept so old components still compile. */
+export const PICKTIME_BUTTON_IMAGE = "/logo.png";
 
 /**
  * Base path for the full site while coming soon is active.

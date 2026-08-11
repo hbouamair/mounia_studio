@@ -807,3 +807,54 @@ export async function updateSitePageContent(
     return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
   }
 }
+
+/**
+ * Danger zone: wipe all bookings (and reset promo usage counters).
+ * Intended for clearing test data before go-live.
+ */
+export async function resetAllBookings(): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+    const supabase = getSupabaseAdmin();
+
+    const { count, error: countError } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true });
+    if (countError) throw new Error(countError.message);
+
+    const total = count ?? 0;
+
+    // Supabase requires a filter on delete — match all rows by created_at
+    const { error: deleteError } = await supabase
+      .from("bookings")
+      .delete()
+      .gte("created_at", "1970-01-01T00:00:00.000Z");
+    if (deleteError) throw new Error(deleteError.message);
+
+    // Reset promo usage counters so test codes can be reused
+    const { error: promoError } = await supabase
+      .from("promo_codes")
+      .update({ uses_count: 0, updated_at: new Date().toISOString() })
+      .gte("id", 0);
+    if (promoError) {
+      // Non-fatal: bookings are already cleared
+      console.error("resetAllBookings: promo reset failed", promoError.message);
+    }
+
+    revalidateAdmin();
+    revalidatePath("/admin/statistiques");
+    revalidatePath("/admin/income");
+    revalidatePath("/admin/promo-codes");
+    revalidatePath("/reservation");
+
+    return {
+      ok: true,
+      message:
+        total === 0
+          ? "Aucune réservation à supprimer."
+          : `${total} réservation${total > 1 ? "s" : ""} supprimée${total > 1 ? "s" : ""}. Compteurs promo réinitialisés.`,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
+  }
+}
