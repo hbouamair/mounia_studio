@@ -1,7 +1,6 @@
 import { ArrowRight, Building2, CalendarCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import HeroVideo from "@/components/HeroVideo";
 import { BOOKING_URL, BASE_PATH } from "@/lib/constants";
 
 /** Grain texture — kills the "stock video" look (inline SVG, no request). */
@@ -29,7 +28,6 @@ export default function Hero() {
           className="object-cover object-[38%_50%] sm:object-[42%_45%]"
           quality={90}
         />
-        <HeroVideo />
 
         <div
           className="absolute inset-0 pointer-events-none mix-blend-overlay"
@@ -40,22 +38,22 @@ export default function Hero() {
           aria-hidden
         />
 
-        {/* Mobile: stronger top wash so text under nav stays readable */}
+        {/* Mobile: stronger wash so all text stays readable */}
         <div
           className="absolute inset-0 pointer-events-none md:hidden"
           style={{
             background:
-              "linear-gradient(180deg, rgba(8,12,22,0.72) 0%, rgba(8,12,22,0.45) 28%, rgba(8,12,22,0.2) 52%, rgba(8,12,22,0.55) 100%)",
+              "linear-gradient(180deg, rgba(8,12,22,0.78) 0%, rgba(8,12,22,0.55) 32%, rgba(8,12,22,0.35) 55%, rgba(8,12,22,0.65) 100%)",
           }}
           aria-hidden
         />
 
-        {/* Desktop: left + bottom scrim */}
+        {/* Desktop: deeper left + bottom scrim for small text contrast */}
         <div
           className="absolute inset-0 pointer-events-none hidden md:block"
           style={{
             background:
-              "radial-gradient(ellipse 110% 85% at 50% 45%, transparent 35%, rgba(10,16,28,0.3) 100%), linear-gradient(180deg, rgba(10,16,28,0.18) 0%, rgba(10,16,28,0.06) 38%, rgba(10,16,28,0.4) 70%, rgba(10,16,28,0.78) 100%), linear-gradient(90deg, rgba(10,16,28,0.62) 0%, rgba(10,16,28,0.12) 52%)",
+              "radial-gradient(ellipse 110% 85% at 50% 45%, transparent 30%, rgba(10,16,28,0.35) 100%), linear-gradient(180deg, rgba(10,16,28,0.28) 0%, rgba(10,16,28,0.1) 38%, rgba(10,16,28,0.5) 70%, rgba(10,16,28,0.82) 100%), linear-gradient(90deg, rgba(10,16,28,0.72) 0%, rgba(10,16,28,0.28) 42%, rgba(10,16,28,0.08) 70%)",
           }}
           aria-hidden
         />
@@ -70,28 +68,31 @@ export default function Hero() {
       <div className="relative z-10 min-h-[100svh] flex flex-col justify-start md:justify-end pt-[5.75rem] sm:pt-28 md:pt-[104px] pb-10 sm:pb-14 md:pb-32">
         <div className="max-w-7xl 2xl:max-w-8xl mx-auto w-full px-5 sm:px-6 lg:px-8 2xl:px-10 flex-1 flex flex-col justify-center md:justify-end md:flex-none">
           <div className="max-w-xl md:max-w-2xl">
-            <p className="mb-3 sm:mb-4 text-[10px] sm:text-xs font-bold uppercase tracking-[0.22em] text-[#F2E7AF]/90 animate-fade-up">
+            <p
+              className="mb-3 sm:mb-4 text-sm sm:text-base font-bold uppercase tracking-[0.16em] text-[#F2E7AF] animate-fade-up"
+              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.65)" }}
+            >
               RJ Studio · Casablanca
             </p>
 
             <h1
               className="text-[2.25rem] sm:text-5xl md:text-6xl lg:text-7xl font-display font-extrabold leading-[1.06] sm:leading-[1.02] tracking-tight text-white animate-fade-up stagger-1"
-              style={{ textShadow: "0 4px 28px rgba(0,0,0,0.5)" }}
+              style={{ textShadow: "0 4px 28px rgba(0,0,0,0.55)" }}
             >
               Chaque projet
               <br />
               mérite{" "}
               <span
                 className="text-[#F2E7AF]"
-                style={{ textShadow: "0 4px 20px rgba(0,0,0,0.45)" }}
+                style={{ textShadow: "0 4px 20px rgba(0,0,0,0.5)" }}
               >
                 son espace.
               </span>
             </h1>
 
             <p
-              className="mt-3.5 sm:mt-5 text-[0.95rem] sm:text-lg text-white/88 font-medium max-w-md leading-relaxed animate-fade-up stagger-2"
-              style={{ textShadow: "0 1px 10px rgba(0,0,0,0.4)" }}
+              className="mt-4 sm:mt-5 text-base sm:text-xl text-white font-medium max-w-md leading-relaxed animate-fade-up stagger-2"
+              style={{ textShadow: "0 2px 14px rgba(0,0,0,0.55)" }}
             >
               Studios de danse et fitness à la location — à l&apos;heure, sans
               engagement.
@@ -123,21 +124,24 @@ export default function Hero() {
               </a>
             </div>
 
-            <div className="mt-5 sm:mt-7 flex flex-wrap items-center gap-x-2.5 gap-y-1 animate-fade-up stagger-4">
+            <div
+              className="mt-5 sm:mt-7 flex flex-wrap items-center gap-x-3 gap-y-1.5 animate-fade-up stagger-4"
+              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.55)" }}
+            >
               <Link
                 href={BOOKING_URL}
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-white/85 hover:text-white transition-colors"
+                className="inline-flex items-center gap-2 text-sm sm:text-base font-semibold text-white hover:text-[#F2E7AF] transition-colors"
               >
-                <span className="relative flex h-2 w-2 shrink-0">
+                <span className="relative flex h-2.5 w-2.5 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary-400" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary-400" />
                 </span>
                 Dès 150 MAD/h
               </Link>
-              <span className="text-white/30" aria-hidden>
+              <span className="text-white/50" aria-hidden>
                 ·
               </span>
-              <span className="text-[11px] sm:text-xs font-medium text-white/60">
+              <span className="text-sm sm:text-base font-medium text-white/90">
                 Sans engagement
               </span>
             </div>
@@ -147,14 +151,14 @@ export default function Hero() {
 
       <a
         href="#studios-selection"
-        className="hidden md:flex absolute bottom-7 right-10 flex-col items-center gap-1.5 text-white/55 hover:text-white/90 transition-colors"
+        className="hidden md:flex absolute bottom-7 left-1/2 -translate-x-1/2 z-20 flex-col items-center gap-1.5 text-white/70 hover:text-white transition-colors"
         aria-label="Faire défiler vers le contenu"
       >
-        <span className="text-[10px] font-medium tracking-[0.2em] uppercase">
+        <span className="text-xs font-medium tracking-[0.2em] uppercase">
           Explorer
         </span>
-        <div className="w-5 h-8 rounded-full border border-white/30 flex justify-center pt-1.5 animate-scroll-cue">
-          <div className="w-1 h-1.5 rounded-full bg-white/80 animate-scroll-dot" />
+        <div className="w-5 h-8 rounded-full border border-white/40 flex justify-center pt-1.5 animate-scroll-cue">
+          <div className="w-1 h-1.5 rounded-full bg-white/90 animate-scroll-dot" />
         </div>
       </a>
     </section>
