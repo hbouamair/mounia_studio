@@ -1,7 +1,31 @@
-import type { PromoCode } from "./types";
+import type { CourseType, PromoCode } from "./types";
 
 export function normalizePromoCode(code: string): string {
   return code.trim().toUpperCase();
+}
+
+/**
+ * Promo codes apply only to a single group location (1 séance).
+ * Not valid with pack-10 offers or private courses (−50% already applied).
+ */
+export function getPromoEligibilityError(options: {
+  courseType: CourseType;
+  isPackage: boolean;
+}): string | null {
+  if (options.courseType === "private") {
+    return "Les codes promo ne s'appliquent pas aux cours privés (−50 % déjà inclus).";
+  }
+  if (options.isPackage) {
+    return "Les codes promo ne s'appliquent pas au pack 10 locations.";
+  }
+  return null;
+}
+
+export function isPromoEligible(options: {
+  courseType: CourseType;
+  isPackage: boolean;
+}): boolean {
+  return getPromoEligibilityError(options) == null;
 }
 
 export function calculatePromoDiscount(

@@ -57,6 +57,7 @@ import {
   type MultiSlotPackageBreakdown,
 } from "@/lib/booking/discounts";
 import { getStudioImages } from "@/lib/booking/studio-images";
+import { isPromoEligible } from "@/lib/booking/promo";
 import StudioImageCarousel from "@/components/studios/StudioImageCarousel";
 import { CONTACT_ADDRESS, FIRST_BOOKABLE_DATE } from "@/lib/constants";
 
@@ -164,6 +165,10 @@ export default function BookingWizard({ studios, settings }: Props) {
   const targetSlotCount =
     sessionMode === "pack10" ? PACK_SESSION_COUNT : 1;
   const isPack10 = sessionMode === "pack10";
+  const promoEligible = Boolean(
+    courseType &&
+      isPromoEligible({ courseType, isPackage: isPack10 })
+  );
 
   useEffect(() => {
     if (skipInitialScroll.current) {
@@ -338,7 +343,17 @@ export default function BookingWizard({ studios, settings }: Props) {
     : singlePriceBreakdown?.totalBeforePromoMad ?? null;
 
   const displayTotalMad =
-    appliedPromo?.totalMad ?? totalBeforePromoMad ?? null;
+    promoEligible && appliedPromo
+      ? appliedPromo.totalMad
+      : totalBeforePromoMad ?? null;
+
+  useEffect(() => {
+    if (!promoEligible) {
+      setPromoInput("");
+      setAppliedPromo(null);
+      setPromoError(null);
+    }
+  }, [promoEligible]);
 
   function resetSchedule() {
     setSelectedDate(null);
@@ -381,13 +396,18 @@ export default function BookingWizard({ studios, settings }: Props) {
   }
 
   async function applyPromoCode() {
-    if (totalBeforePromoMad == null || !promoInput.trim()) return;
+    if (!promoEligible || totalBeforePromoMad == null || !promoInput.trim())
+      return;
     setValidatingPromo(true);
     setPromoError(null);
     try {
-      const res = await fetch(
-        `/api/promo/validate?code=${encodeURIComponent(promoInput.trim())}&subtotal=${totalBeforePromoMad}`
-      );
+      const params = new URLSearchParams({
+        code: promoInput.trim(),
+        subtotal: String(totalBeforePromoMad),
+        courseType: courseType ?? "group",
+        package: isPack10 ? "1" : "0",
+      });
+      const res = await fetch(`/api/promo/validate?${params}`);
       const json = await res.json();
       if (!json.valid) {
         setAppliedPromo(null);
@@ -441,7 +461,7 @@ export default function BookingWizard({ studios, settings }: Props) {
           phone,
           note: note || undefined,
           paymentMethod,
-          promoCode: appliedPromo?.code,
+          promoCode: promoEligible ? appliedPromo?.code : undefined,
         }),
       });
       const json = await res.json();
@@ -980,6 +1000,7 @@ export default function BookingWizard({ studios, settings }: Props) {
                     />
                   </Field>
 
+                  {promoEligible && (
                   <div className="border-t border-charcoal/5 pt-5 space-y-3">
                     <div className="flex items-center gap-2">
                       <Tag className="w-4 h-4 text-primary-500" aria-hidden />
@@ -988,6 +1009,9 @@ export default function BookingWizard({ studios, settings }: Props) {
                       </h3>
                       <span className="text-xs text-soft-charcoal">(optionnel)</span>
                     </div>
+                    <p className="text-xs text-soft-charcoal">
+                      Valable uniquement pour 1 location en groupe.
+                    </p>
                     <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
@@ -1040,6 +1064,7 @@ export default function BookingWizard({ studios, settings }: Props) {
                       <p className="text-sm text-accent-700">{promoError}</p>
                     )}
                   </div>
+                  )}
 
                   <div className="pt-2">
                     <h3 className="font-display font-bold text-charcoal tracking-tight mb-1">
@@ -1180,7 +1205,9 @@ export default function BookingWizard({ studios, settings }: Props) {
                           value={`−${formatMad(multiPriceBreakdown.regularCourseDiscountMad)}`}
                         />
                       )}
-                    {appliedPromo && totalBeforePromoMad != null && (
+                    {promoEligible &&
+                      appliedPromo &&
+                      totalBeforePromoMad != null && (
                       <>
                         <SummaryRow
                           label="Avant promo"

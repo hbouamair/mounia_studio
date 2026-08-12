@@ -29,6 +29,7 @@ import {
 } from "@/lib/booking/db";
 import {
   calculatePromoDiscount,
+  getPromoEligibilityError,
   normalizePromoCode,
   validatePromoForBooking,
 } from "@/lib/booking/promo";
@@ -379,6 +380,13 @@ export async function POST(request: NextRequest) {
 
     const rawPromo = input.promoCode?.trim();
     if (rawPromo) {
+      const eligibilityError = getPromoEligibilityError({
+        courseType: input.courseType,
+        isPackage,
+      });
+      if (eligibilityError) {
+        return NextResponse.json({ error: eligibilityError }, { status: 400 });
+      }
       const promo = await fetchPromoByCode(rawPromo, supabase);
       if (!promo) {
         return NextResponse.json(
