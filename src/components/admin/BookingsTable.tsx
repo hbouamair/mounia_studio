@@ -10,9 +10,11 @@ import {
   Loader2,
   X,
 } from "lucide-react";
-import type { BookingWithStudio } from "@/lib/booking/types";
+import type { BookingWithStudio, CourseType } from "@/lib/booking/types";
 import {
   BOOKING_STATUS_LABELS,
+  COURSE_TYPE_LABELS,
+  COURSE_TYPE_SHORT_LABELS,
   PAYMENT_METHOD_LABELS,
 } from "@/lib/booking/types";
 import {
@@ -20,6 +22,7 @@ import {
   formatMad,
   minutesToTimeString,
 } from "@/lib/booking/pricing";
+import { PRIVATE_STUDIO_NAME } from "@/lib/booking/discounts";
 import {
   groupBookingsForAdmin,
   packageDateRangeLabel,
@@ -44,6 +47,31 @@ const STATUS_BADGES: Record<string, string> = {
   cancelled: "admin-badge-cancelled",
   expired: "admin-badge-neutral",
 };
+
+function resolveCourseType(booking: BookingWithStudio): CourseType {
+  if (booking.course_type === "private" || booking.course_type === "group") {
+    return booking.course_type;
+  }
+  // Older rows without course_type: private studio ⇒ privé
+  if (booking.studios?.name === PRIVATE_STUDIO_NAME) return "private";
+  return "group";
+}
+
+function CourseTypeBadge({ type }: { type: CourseType }) {
+  const isPrivate = type === "private";
+  return (
+    <span
+      className={
+        isPrivate
+          ? "admin-badge bg-violet-400/15 text-violet-200 border border-violet-400/30"
+          : "admin-badge bg-sky-400/15 text-sky-200 border border-sky-400/30"
+      }
+      title={COURSE_TYPE_LABELS[type]}
+    >
+      {COURSE_TYPE_SHORT_LABELS[type]}
+    </span>
+  );
+}
 
 function formatCreatedAt(iso: string): string {
   return new Date(iso).toLocaleString("fr-FR", {
@@ -91,6 +119,7 @@ export default function BookingsTable({
           <thead>
             <tr className="bg-white/[0.03] border-b border-white/[0.07] text-left text-[11px] font-bold uppercase tracking-[0.08em] text-white/40">
               <th className="px-4 py-3.5">Référence</th>
+              <th className="px-4 py-3.5">Type</th>
               <th className="px-4 py-3.5">Studio</th>
               <th className="px-4 py-3.5">Date séance</th>
               <th className="px-4 py-3.5">Créée le</th>
@@ -177,6 +206,9 @@ function PackageRow({ bookings }: { bookings: BookingWithStudio[] }) {
             {bookings.length} séances · {primary.reference}
             {bookings.length > 1 ? "…" : ""}
           </span>
+        </td>
+        <td className="px-4 py-3.5 whitespace-nowrap">
+          <CourseTypeBadge type={resolveCourseType(primary)} />
         </td>
         <td className="px-4 py-3.5 whitespace-nowrap text-white/80">
           {studioName}
@@ -284,7 +316,7 @@ function PackageRow({ bookings }: { bookings: BookingWithStudio[] }) {
       </tr>
       {expanded && (
         <tr className="border-b border-white/[0.05] bg-white/[0.02]">
-          <td colSpan={9} className="px-4 py-4 sm:px-6">
+          <td colSpan={10} className="px-4 py-4 sm:px-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-white/35 mb-3">
               Séances du forfait
             </p>
@@ -501,6 +533,9 @@ function BookingRow({ booking }: { booking: BookingWithStudio }) {
         <td className="px-4 py-3.5 font-bold text-white whitespace-nowrap tracking-wide">
           {booking.reference}
         </td>
+        <td className="px-4 py-3.5 whitespace-nowrap">
+          <CourseTypeBadge type={resolveCourseType(booking)} />
+        </td>
         <td className="px-4 py-3.5 whitespace-nowrap text-white/80">
           {booking.studios?.name ?? `Studio ${booking.studio_id}`}
         </td>
@@ -635,9 +670,15 @@ function BookingRow({ booking }: { booking: BookingWithStudio }) {
       </tr>
       {expanded && (
         <tr className="border-b border-white/[0.05] bg-white/[0.02]">
-          <td colSpan={9} className="px-6 py-5">
+          <td colSpan={10} className="px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 text-sm">
+                <p>
+                  <span className="text-white/40">Type :</span>{" "}
+                  <span className="text-white/85 font-medium">
+                    {COURSE_TYPE_LABELS[resolveCourseType(booking)]}
+                  </span>
+                </p>
                 <p>
                   <span className="text-white/40">Email :</span>{" "}
                   <a

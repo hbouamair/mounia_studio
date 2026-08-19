@@ -60,6 +60,12 @@ export const COURSE_TYPE_LABELS: Record<CourseType, string> = {
   private: "Cours privé (max 3 personnes)",
 };
 
+/** Short labels for admin tables and badges. */
+export const COURSE_TYPE_SHORT_LABELS: Record<CourseType, string> = {
+  group: "Groupe",
+  private: "Privé",
+};
+
 export type PaymentMethod = "paypal" | "virement" | "cash";
 
 export type BookingStatus =
