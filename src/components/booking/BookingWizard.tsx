@@ -49,7 +49,7 @@ import {
   computeMultiSlotPackagePrice,
   filterStudiosForCourseType,
   getEffectiveStudioPrices,
-  getPaidCoursesForPackage,
+  PACK_DISCOUNT_PERCENT,
   PRIVATE_COURSE_DISCOUNT_PERCENT,
   REGULAR_COURSE_MIN_COUNT,
   regularCourseOfferLabel,
@@ -822,9 +822,8 @@ export default function BookingWizard({ studios, settings }: Props) {
                       <ul className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-2.5 pr-0.5">
                         {confirmedSlots.map((slot, index) => {
                           const quote = multiPriceBreakdown?.slots[index];
-                          const showFree =
-                            confirmedSlots.length === targetSlotCount &&
-                            quote?.isFree;
+                          const packReady =
+                            confirmedSlots.length === targetSlotCount;
                           const slotLabel = formatSelectedSlotLabel(
                             slot,
                             duration,
@@ -851,18 +850,15 @@ export default function BookingWizard({ studios, settings }: Props) {
                                   <p className="text-xs text-soft-charcoal tabular-nums mt-1">
                                     {slotLabel.timeLabel}
                                   </p>
-                                  {showFree && (
-                                    <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide text-secondary-600">
-                                      Offerte
-                                    </span>
-                                  )}
                                 </div>
                                 <div className="flex flex-col items-end gap-1.5 shrink-0">
                                   {quote && (
                                     <span className="text-xs font-semibold tabular-nums text-charcoal whitespace-nowrap">
-                                      {showFree
-                                        ? formatMad(0)
-                                        : formatMad(quote.sessionPriceMad)}
+                                      {formatMad(
+                                        packReady
+                                          ? quote.chargedPriceMad
+                                          : quote.sessionPriceMad
+                                      )}
                                     </span>
                                   )}
                                   <button
@@ -1199,9 +1195,9 @@ export default function BookingWizard({ studios, settings }: Props) {
                       value={PAYMENT_METHOD_LABELS[paymentMethod]}
                     />
                     {multiPriceBreakdown &&
-                      multiPriceBreakdown.freeCoursesIncluded > 0 && (
+                      multiPriceBreakdown.regularCourseDiscountMad > 0 && (
                         <SummaryRow
-                          label={`Cours offert${multiPriceBreakdown.freeCoursesIncluded > 1 ? "s" : ""}`}
+                          label={`Remise pack (−${PACK_DISCOUNT_PERCENT} %)`}
                           value={`−${formatMad(multiPriceBreakdown.regularCourseDiscountMad)}`}
                         />
                       )}
@@ -1418,12 +1414,11 @@ function SessionCountStep({
             Pack {PACK_SESSION_COUNT} locations
           </h3>
           <p className="text-sm text-soft-charcoal leading-relaxed">
-            Choisissez {PACK_SESSION_COUNT} créneaux d&apos;un coup.{" "}
-            {regularCourseOfferLabel()}
+            Choisissez {PACK_SESSION_COUNT} créneaux d&apos;un coup —{" "}
+            {regularCourseOfferLabel()}.
           </p>
           <p className="mt-3 text-xs font-semibold text-secondary-700 bg-secondary-50 border border-secondary-100 rounded-lg px-3 py-2">
-            Vous payez {getPaidCoursesForPackage(PACK_SESSION_COUNT)} locations ·
-            1 offerte
+            −{PACK_DISCOUNT_PERCENT} % sur le pack
           </p>
         </motion.button>
       </motion.div>
@@ -1862,7 +1857,6 @@ function MultiPackageBreakdown({
 }: {
   breakdown: MultiSlotPackageBreakdown;
 }) {
-  const paid = getPaidCoursesForPackage(b.packageCourseCount);
   return (
     <div className="book-panel-accent px-4 py-3.5 space-y-2 text-sm">
       <div className="flex justify-between gap-3 text-charcoal">
@@ -1871,21 +1865,16 @@ function MultiPackageBreakdown({
           {formatMad(b.packageSubtotalMad)}
         </span>
       </div>
-      {b.freeCoursesIncluded > 0 && (
+      {b.regularCourseDiscountMad > 0 && (
         <div className="flex justify-between gap-3 text-secondary-700">
-          <span>
-            {b.freeCoursesIncluded} location{b.freeCoursesIncluded > 1 ? "s" : ""}{" "}
-            offerte{b.freeCoursesIncluded > 1 ? "s" : ""} (les moins chères)
-          </span>
+          <span>Remise pack (−{PACK_DISCOUNT_PERCENT} %)</span>
           <span className="font-semibold tabular-nums">
             −{formatMad(b.regularCourseDiscountMad)}
           </span>
         </div>
       )}
       <div className="flex justify-between gap-3 pt-1.5 border-t border-secondary-200/80 font-display font-bold text-charcoal">
-        <span>
-          Vous payez {paid} location{paid > 1 ? "s" : ""}
-        </span>
+        <span>Total pack</span>
         <span className="tabular-nums">{formatMad(b.totalBeforePromoMad)}</span>
       </div>
     </div>

@@ -433,15 +433,11 @@ export async function POST(request: NextRequest) {
 
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i];
-      const slotQuote = isPackage ? multiPricing!.slots[i] : null;
       const totalMad = allocatedTotals[i] ?? 0;
 
-      const packageNote =
-        isPackage
-          ? `Séance ${i + 1}/${slots.length} du forfait${
-              slotQuote?.isFree ? " (offerte)" : ""
-            }`
-          : "";
+      const packageNote = isPackage
+        ? `Séance ${i + 1}/${slots.length} du forfait`
+        : "";
       const noteParts = [baseNote, packageNote].filter(Boolean);
 
       let booking: Booking | null = null;
@@ -552,9 +548,7 @@ export async function POST(request: NextRequest) {
       const refs = created.map((b) => b.reference).join(", ");
       await Promise.all(
         created.map((b, i) => {
-          const slotNote = `Séance ${i + 1}/${created.length} du forfait${
-            multiPricing!.slots[i].isFree ? " (offerte)" : ""
-          } · Refs : ${refs}`;
+          const slotNote = `Séance ${i + 1}/${created.length} du forfait · Refs : ${refs}`;
           const fullNote = baseNote ? `${baseNote} · ${slotNote}` : slotNote;
           return supabase
             .from("bookings")
@@ -580,9 +574,7 @@ export async function POST(request: NextRequest) {
       const sessionLines = created
         .map(
           (b, i) =>
-            `${b.date} ${String(Math.floor(b.start_minutes / 60)).padStart(2, "0")}:${String(b.start_minutes % 60).padStart(2, "0")}${
-              multiPricing!.slots[i].isFree ? " (offerte)" : ""
-            } [${b.reference}]`
+            `${b.date} ${String(Math.floor(b.start_minutes / 60)).padStart(2, "0")}:${String(b.start_minutes % 60).padStart(2, "0")} [${b.reference}]`
         )
         .join("\n");
       primary.note = baseNote

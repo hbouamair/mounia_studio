@@ -1,4 +1,4 @@
--- ============================================================
+so fo -- ============================================================
 -- RJ Studio — Reminder emails (relance avant réservation)
 -- Run in Supabase SQL Editor if migration.sql was already applied.
 -- ============================================================

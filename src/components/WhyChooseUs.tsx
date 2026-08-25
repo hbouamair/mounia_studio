@@ -23,7 +23,7 @@ const features = [
   {
     icon: Package,
     title: "FORMULES AVANTAGEUSES",
-    description: "Bénéficiez d'1 heure de location gratuite à l'achat de notre pack de 10 heures. Plus vous louez, plus vous économisez."
+    description: "Profitez de −20 % sur notre pack de 10 locations. Plus vous louez, plus vous économisez."
   },
   {
     icon: Users,

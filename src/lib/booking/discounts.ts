@@ -6,8 +6,10 @@ import type { PeakWindow } from "./types";
 export const PRIVATE_STUDIO_NAME = "Studio 3";
 
 export const PRIVATE_COURSE_DISCOUNT_PERCENT = 50;
-/** Minimum courses in a package to unlock free sessions. */
+/** Minimum courses in a package (pack 10). */
 export const REGULAR_COURSE_MIN_COUNT = 10;
+/** Flat discount applied to pack-10 bookings. */
+export const PACK_DISCOUNT_PERCENT = 20;
 
 export function isPrivateStudio(studio: Pick<Studio, "name">): boolean {
   return studio.name === PRIVATE_STUDIO_NAME;
@@ -41,14 +43,22 @@ export function filterStudiosForCourseType(
   return studios;
 }
 
-/** Free sessions included: 1 free course per block of 10 in the package. */
-export function getFreeCoursesForPackage(courseCount: number): number {
-  if (courseCount < REGULAR_COURSE_MIN_COUNT) return 0;
-  return Math.floor(courseCount / REGULAR_COURSE_MIN_COUNT);
+/** @deprecated Pack no longer includes free sessions — always 0. */
+export function getFreeCoursesForPackage(_courseCount: number): number {
+  return 0;
 }
 
+/** All sessions in a pack are billed (discount is % off, not free slots). */
 export function getPaidCoursesForPackage(courseCount: number): number {
-  return courseCount - getFreeCoursesForPackage(courseCount);
+  return courseCount;
+}
+
+export function isPackCourseCount(courseCount: number): boolean {
+  return courseCount >= REGULAR_COURSE_MIN_COUNT;
+}
+
+export function packDiscountMad(subtotalMad: number): number {
+  return Math.round(subtotalMad * (PACK_DISCOUNT_PERCENT / 100) * 100) / 100;
 }
 
 export interface BookingDiscountBreakdown {
@@ -57,10 +67,12 @@ export interface BookingDiscountBreakdown {
   sessionPriceMad: number;
   /** Number of courses billed (1 = single booking, no forfait). */
   packageCourseCount: number;
-  /** sessionPrice × packageCourseCount, before free-course offer. */
+  /** sessionPrice × packageCourseCount, before pack %. */
   packageSubtotalMad: number;
   courseTypeDiscountMad: number;
+  /** Always 0 — kept for UI/API compatibility. */
   freeCoursesIncluded: number;
+  /** Pack −20% amount (or 0 for single bookings). */
   regularCourseDiscountMad: number;
   totalBeforePromoMad: number;
 }
@@ -105,11 +117,11 @@ export function computeBookingPriceWithDiscounts(options: {
   const packageSubtotalMad =
     Math.round(sessionPriceMad * packageCourseCount * 100) / 100;
 
-  const freeCoursesIncluded = hasPackage
-    ? getFreeCoursesForPackage(packageCourseCount)
-    : 0;
+  const freeCoursesIncluded = 0;
   const regularCourseDiscountMad =
-    Math.round(sessionPriceMad * freeCoursesIncluded * 100) / 100;
+    hasPackage && isPackCourseCount(packageCourseCount)
+      ? packDiscountMad(packageSubtotalMad)
+      : 0;
 
   const totalBeforePromoMad = Math.max(
     0,
@@ -132,15 +144,14 @@ export function computeBookingPriceWithDiscounts(options: {
 
 /** Short label for the pack-10 offer (UI). */
 export function regularCourseOfferLabel(): string {
-  return `Pack ${REGULAR_COURSE_MIN_COUNT} : payez ${REGULAR_COURSE_MIN_COUNT - 1}, la ${REGULAR_COURSE_MIN_COUNT}e location est offerte (~10 % de remise).`;
+  return `Pack ${REGULAR_COURSE_MIN_COUNT} locations : −${PACK_DISCOUNT_PERCENT} %`;
 }
 
 /** One-line package summary for receipts and confirmation. */
 export function formatPackageSummary(b: BookingDiscountBreakdown): string | null {
   if (b.packageCourseCount <= 1) return null;
-  const paid = getPaidCoursesForPackage(b.packageCourseCount);
-  if (b.freeCoursesIncluded > 0) {
-    return `${b.packageCourseCount} cours · vous payez ${paid} (${b.freeCoursesIncluded} offert${b.freeCoursesIncluded > 1 ? "s" : ""}) · ${formatMad(b.totalBeforePromoMad)}`;
+  if (b.regularCourseDiscountMad > 0) {
+    return `${b.packageCourseCount} locations · −${PACK_DISCOUNT_PERCENT} % · ${formatMad(b.totalBeforePromoMad)}`;
   }
   return `${b.packageCourseCount} cours × ${formatMad(b.sessionPriceMad)} = ${formatMad(b.packageSubtotalMad)}`;
 }
@@ -155,6 +166,7 @@ export interface SlotQuote {
   startMinutes: number;
   sessionPriceMad: number;
   chargedPriceMad: number;
+  /** Always false with % pack discount — kept for compatibility. */
   isFree: boolean;
   courseTypeDiscountMad: number;
 }
@@ -171,7 +183,7 @@ export interface MultiSlotPackageBreakdown {
 
 /**
  * Price N distinct slots as a package.
- * Free sessions (1 per block of 10) are applied to the cheapest slots.
+ * Pack of 10+ applies a flat −20% on the package subtotal.
  */
 export function computeMultiSlotPackagePrice(options: {
   studio: Studio;
@@ -182,8 +194,12 @@ export function computeMultiSlotPackagePrice(options: {
 }): MultiSlotPackageBreakdown {
   const { studio, courseType, slots, durationMinutes, peakWindows } = options;
   const packageCourseCount = slots.length;
+  const applyPackDiscount = isPackCourseCount(packageCourseCount);
+  const chargeFactor = applyPackDiscount
+    ? 1 - PACK_DISCOUNT_PERCENT / 100
+    : 1;
 
-  const quoted = slots.map((slot) => {
+  const slotQuotes: SlotQuote[] = slots.map((slot) => {
     const single = computeBookingPriceWithDiscounts({
       studio,
       courseType,
@@ -193,28 +209,15 @@ export function computeMultiSlotPackagePrice(options: {
       peakWindows,
       regularCourseCount: 1,
     });
+    const sessionPriceMad = single.sessionPriceMad;
     return {
       date: slot.date,
       startMinutes: slot.startMinutes,
-      sessionPriceMad: single.sessionPriceMad,
+      sessionPriceMad,
       courseTypeDiscountMad: single.courseTypeDiscountMad,
-    };
-  });
-
-  const freeCoursesIncluded = getFreeCoursesForPackage(packageCourseCount);
-  const orderByCheapest = quoted
-    .map((q, index) => ({ index, price: q.sessionPriceMad }))
-    .sort((a, b) => a.price - b.price || a.index - b.index);
-  const freeIndexes = new Set(
-    orderByCheapest.slice(0, freeCoursesIncluded).map((x) => x.index)
-  );
-
-  const slotQuotes: SlotQuote[] = quoted.map((q, index) => {
-    const isFree = freeIndexes.has(index);
-    return {
-      ...q,
-      isFree,
-      chargedPriceMad: isFree ? 0 : q.sessionPriceMad,
+      isFree: false,
+      chargedPriceMad:
+        Math.round(sessionPriceMad * chargeFactor * 100) / 100,
     };
   });
 
@@ -222,12 +225,9 @@ export function computeMultiSlotPackagePrice(options: {
     Math.round(
       slotQuotes.reduce((sum, s) => sum + s.sessionPriceMad, 0) * 100
     ) / 100;
-  const regularCourseDiscountMad =
-    Math.round(
-      slotQuotes
-        .filter((s) => s.isFree)
-        .reduce((sum, s) => sum + s.sessionPriceMad, 0) * 100
-    ) / 100;
+  const regularCourseDiscountMad = applyPackDiscount
+    ? packDiscountMad(packageSubtotalMad)
+    : 0;
   const courseTypeDiscountMad =
     Math.round(
       slotQuotes.reduce((sum, s) => sum + s.courseTypeDiscountMad, 0) * 100
@@ -239,7 +239,7 @@ export function computeMultiSlotPackagePrice(options: {
     slots: slotQuotes,
     packageCourseCount,
     packageSubtotalMad,
-    freeCoursesIncluded,
+    freeCoursesIncluded: 0,
     regularCourseDiscountMad,
     courseTypeDiscountMad,
     totalBeforePromoMad,
