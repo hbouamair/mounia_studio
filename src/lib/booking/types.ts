@@ -66,6 +66,20 @@ export const COURSE_TYPE_SHORT_LABELS: Record<CourseType, string> = {
   private: "Privé",
 };
 
+/** Activity types collected during public reservation. */
+export const ACTIVITY_TYPES = [
+  "Danse",
+  "Fitness / HIIT",
+  "Yoga / Pilates",
+  "Workshop",
+  "Répétition / chorégraphie",
+  "Tournage / photo",
+  "Coaching",
+  "Autre",
+] as const;
+
+export type ActivityType = (typeof ACTIVITY_TYPES)[number];
+
 export type PaymentMethod = "paypal" | "virement" | "cash";
 
 export type BookingStatus =
@@ -92,6 +106,10 @@ export interface Booking {
   package_group_id?: string | null;
   /** 1-based index within the package. */
   package_index?: number | null;
+  activity_type?: string | null;
+  activity_description?: string | null;
+  /** Personal / internal block — calendar busy, not counted in revenue. */
+  is_internal?: boolean;
   customer_name: string;
   customer_email: string;
   customer_phone: string;

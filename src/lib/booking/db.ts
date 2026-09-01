@@ -168,6 +168,7 @@ export async function fetchBookingsNeedingReminder(
   }
 
   return ((data ?? []) as BookingWithStudioName[]).filter((booking) => {
+    if (booking.is_internal) return false;
     const startMs = bookingStartUtc(booking.date, booking.start_minutes).getTime();
     const msUntilStart = startMs - now;
     if (msUntilStart <= 0 || msUntilStart > reminderMs) return false;

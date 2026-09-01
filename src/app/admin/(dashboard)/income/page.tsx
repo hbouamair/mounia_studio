@@ -21,6 +21,7 @@ interface RevenueRow {
   status: string;
   customer_name: string;
   customer_email: string;
+  is_internal?: boolean | null;
 }
 
 export default async function AdminIncomePage() {
@@ -28,14 +29,40 @@ export default async function AdminIncomePage() {
     const supabase = getSupabaseAdmin();
     const studios = await fetchAllStudios(supabase);
 
-    const { data } = await supabase
-      .from("bookings")
-      .select(
-        "date, total_price_mad, studio_id, status, customer_name, customer_email"
-      )
-      .in("status", ["confirmed", "completed"])
-      .limit(10000);
-    const rows = (data ?? []) as RevenueRow[];
+    let rows: RevenueRow[] = [];
+    {
+      const withInternal = await supabase
+        .from("bookings")
+        .select(
+          "date, total_price_mad, studio_id, status, customer_name, customer_email, is_internal"
+        )
+        .in("status", ["confirmed", "completed"])
+        .limit(10000);
+      if (
+        withInternal.error &&
+        (withInternal.error.code === "42703" ||
+          withInternal.error.message?.includes("is_internal"))
+      ) {
+        const legacy = await supabase
+          .from("bookings")
+          .select(
+            "date, total_price_mad, studio_id, status, customer_name, customer_email, admin_note"
+          )
+          .in("status", ["confirmed", "completed"])
+          .limit(10000);
+        rows = ((legacy.data ?? []) as Array<
+          RevenueRow & { admin_note?: string | null }
+        >).filter(
+          (r) =>
+            !r.admin_note?.toLowerCase().includes("blocage interne") &&
+            Number(r.total_price_mad) > 0
+        );
+      } else {
+        rows = ((withInternal.data ?? []) as RevenueRow[]).filter(
+          (r) => !r.is_internal
+        );
+      }
+    }
 
     const now = new Date();
     const thisMonthKey = format(now, "yyyy-MM");

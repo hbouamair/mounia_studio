@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type { Booking, CourseType, PaymentMethod } from "@/lib/booking/types";
+import { ACTIVITY_TYPES } from "@/lib/booking/types";
 import {
   allocatePackageTotals,
   computeBookingPriceWithDiscounts,
@@ -79,6 +80,8 @@ interface CreateBookingBody {
   email: string;
   phone: string;
   note?: string;
+  activityType?: string;
+  activityDescription?: string;
   paymentMethod: PaymentMethod;
   promoCode?: string;
 }
@@ -178,6 +181,20 @@ function validate(
     return { ok: false, error: "Le numéro de téléphone est requis." };
   if (b.note != null && (typeof b.note !== "string" || b.note.length > 1000))
     return { ok: false, error: "La note est trop longue." };
+
+  const activityType =
+    typeof b.activityType === "string" ? b.activityType.trim() : "";
+  if (!activityType || !(ACTIVITY_TYPES as readonly string[]).includes(activityType)) {
+    return { ok: false, error: "Sélectionnez le type d'activité." };
+  }
+  if (
+    b.activityDescription != null &&
+    (typeof b.activityDescription !== "string" ||
+      b.activityDescription.length > 1000)
+  ) {
+    return { ok: false, error: "La description d'activité est trop longue." };
+  }
+
   if (!PAYMENT_METHODS.includes(b.paymentMethod as PaymentMethod))
     return { ok: false, error: "Mode de paiement invalide." };
   if (
@@ -462,6 +479,9 @@ export async function POST(request: NextRequest) {
           regular_course_count: isPackage ? slots.length : null,
           package_group_id: packageGroupId,
           package_index: isPackage ? i + 1 : null,
+          activity_type: input.activityType?.trim() || null,
+          activity_description: input.activityDescription?.trim() || null,
+          is_internal: false,
           customer_name: input.name.trim(),
           customer_email: input.email.trim().toLowerCase(),
           customer_phone: input.phone.trim(),
@@ -477,17 +497,39 @@ export async function POST(request: NextRequest) {
           .select("*")
           .single();
 
-        // Fallback if package columns migration not applied yet
+        // Fallback if newer columns migration not applied yet
         if (
           error &&
           (error.code === "42703" ||
             error.message?.includes("package_group_id") ||
-            error.message?.includes("package_index"))
+            error.message?.includes("package_index") ||
+            error.message?.includes("activity_type") ||
+            error.message?.includes("activity_description") ||
+            error.message?.includes("is_internal"))
         ) {
-          const legacyRow = { ...row };
-          delete (legacyRow as { package_group_id?: string | null })
-            .package_group_id;
-          delete (legacyRow as { package_index?: number | null }).package_index;
+          const legacyRow = { ...row } as Record<string, unknown>;
+          delete legacyRow.package_group_id;
+          delete legacyRow.package_index;
+          delete legacyRow.activity_type;
+          delete legacyRow.activity_description;
+          delete legacyRow.is_internal;
+          const activityBits = [
+            input.activityType?.trim()
+              ? `Activité: ${input.activityType.trim()}`
+              : null,
+            input.activityDescription?.trim()
+              ? `Détail: ${input.activityDescription.trim()}`
+              : null,
+          ].filter(Boolean);
+          if (activityBits.length) {
+            const existing =
+              typeof legacyRow.note === "string" && legacyRow.note
+                ? legacyRow.note
+                : "";
+            legacyRow.note = [existing, ...activityBits]
+              .filter(Boolean)
+              .join(" · ");
+          }
           ({ data, error } = await supabase
             .from("bookings")
             .insert(legacyRow)

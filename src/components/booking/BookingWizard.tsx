@@ -35,7 +35,10 @@ import {
   Users,
 } from "lucide-react";
 import type { CourseType, PaymentMethod, Settings, Studio } from "@/lib/booking/types";
-import { PAYMENT_METHOD_LABELS } from "@/lib/booking/types";
+import {
+  ACTIVITY_TYPES,
+  PAYMENT_METHOD_LABELS,
+} from "@/lib/booking/types";
 import type { BusyInterval } from "@/lib/booking/pricing";
 import {
   computeAvailableStartTimes,
@@ -150,6 +153,8 @@ export default function BookingWizard({ studios, settings }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [activityType, setActivityType] = useState("");
+  const [activityDescription, setActivityDescription] = useState("");
   const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [promoInput, setPromoInput] = useState("");
@@ -459,6 +464,8 @@ export default function BookingWizard({ studios, settings }: Props) {
           name,
           email,
           phone,
+          activityType,
+          activityDescription: activityDescription || undefined,
           note: note || undefined,
           paymentMethod,
           promoCode: promoEligible ? appliedPromo?.code : undefined,
@@ -491,7 +498,9 @@ export default function BookingWizard({ studios, settings }: Props) {
   const detailsValid =
     name.trim().length > 1 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
-    phone.trim().length >= 8;
+    phone.trim().length >= 8 &&
+    activityType.trim().length > 0 &&
+    activityDescription.trim().length >= 3;
 
   return (
     <div ref={wizardRef} className="book-frame max-w-5xl mx-auto scroll-mt-28">
@@ -985,14 +994,41 @@ export default function BookingWizard({ studios, settings }: Props) {
                       />
                     </Field>
                   </div>
+
+                  <Field label="Type d'activité *">
+                    <select
+                      value={activityType}
+                      onChange={(e) => setActivityType(e.target.value)}
+                      className="book-input min-h-12"
+                    >
+                      <option value="">Choisir une activité…</option>
+                      {ACTIVITY_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label="Description de l'activité *">
+                    <textarea
+                      value={activityDescription}
+                      onChange={(e) => setActivityDescription(e.target.value)}
+                      maxLength={1000}
+                      rows={3}
+                      className="book-input resize-none"
+                      placeholder="Ex. : cours de hip-hop pour 12 personnes, répétition chorégraphie, séance yoga…"
+                    />
+                  </Field>
+
                   <Field label="Note (optionnel)">
                     <textarea
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
                       maxLength={1000}
-                      rows={3}
+                      rows={2}
                       className="book-input resize-none"
-                      placeholder="Type d'activité, besoins particuliers…"
+                      placeholder="Besoins particuliers (sono, lumières…)"
                     />
                   </Field>
 
@@ -1194,6 +1230,15 @@ export default function BookingWizard({ studios, settings }: Props) {
                       label="Paiement"
                       value={PAYMENT_METHOD_LABELS[paymentMethod]}
                     />
+                    {activityType && (
+                      <SummaryRow label="Activité" value={activityType} />
+                    )}
+                    {activityDescription.trim() && (
+                      <SummaryRow
+                        label="Description"
+                        value={activityDescription.trim()}
+                      />
+                    )}
                     {multiPriceBreakdown &&
                       multiPriceBreakdown.regularCourseDiscountMad > 0 && (
                         <SummaryRow

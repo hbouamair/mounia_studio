@@ -16,6 +16,8 @@ const STATUS_COLORS: Record<string, string> = {
   expired: "border-white/20 bg-white/[0.04] opacity-70",
 };
 
+const INTERNAL_COLOR = "border-violet-400 bg-violet-400/15";
+
 export default function WeekCalendar({
   bookings,
   weekStart,
@@ -97,8 +99,14 @@ export default function WeekCalendar({
                 {dayBookings.map((b) => (
                   <div
                     key={b.id}
-                    className={`rounded-lg border-l-[3px] px-2 py-1.5 text-xs ${STATUS_COLORS[b.status] ?? ""}`}
-                    title={`${b.reference} · ${b.customer_name}`}
+                    className={`rounded-lg border-l-[3px] px-2 py-1.5 text-xs ${
+                      b.is_internal
+                        ? INTERNAL_COLOR
+                        : STATUS_COLORS[b.status] ?? ""
+                    }`}
+                    title={`${b.reference} · ${b.customer_name}${
+                      b.activity_type ? ` · ${b.activity_type}` : ""
+                    }`}
                   >
                     <p className="font-bold text-white/90">
                       {minutesToTimeString(b.start_minutes)} –{" "}
@@ -109,7 +117,14 @@ export default function WeekCalendar({
                     <p className="text-white/50 truncate mt-0.5">
                       {b.studios?.name ?? `Studio ${b.studio_id}`}
                     </p>
-                    <p className="text-white/50 truncate">{b.customer_name}</p>
+                    <p className="text-white/50 truncate">
+                      {b.is_internal ? "Interne" : b.customer_name}
+                    </p>
+                    {b.activity_type && !b.is_internal && (
+                      <p className="text-sky-300/70 truncate mt-0.5">
+                        {b.activity_type}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -122,6 +137,7 @@ export default function WeekCalendar({
         <LegendDot className="border-amber-400 bg-amber-400/15" label="En attente" />
         <LegendDot className="border-teal-400 bg-teal-400/15" label="Confirmée" />
         <LegendDot className="border-sky-400 bg-sky-400/15" label="Terminée" />
+        <LegendDot className="border-violet-400 bg-violet-400/15" label="Interne" />
         <LegendDot
           className="border-rose-400/60 bg-rose-400/10"
           label="Annulée / expirée"

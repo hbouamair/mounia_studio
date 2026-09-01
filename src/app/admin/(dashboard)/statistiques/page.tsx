@@ -80,7 +80,7 @@ export default async function AdminStatisticsPage() {
         .in("status", ["pending", "confirmed", "completed"]),
       supabase
         .from("bookings")
-        .select("total_price_mad")
+        .select("total_price_mad, is_internal")
         .gte("date", today)
         .eq("status", "confirmed"),
     ]);
@@ -125,10 +125,14 @@ export default async function AdminStatisticsPage() {
       openSpan > 0
         ? Math.min(100, Math.round((bookedMinutes / openSpan) * 100))
         : 0;
-    const upcomingRevenue = (upcomingData ?? []).reduce(
-      (sum, b) => sum + Number(b.total_price_mad),
-      0
-    );
+    const upcomingRevenue = (
+      (upcomingData ?? []) as Array<{
+        total_price_mad: number;
+        is_internal?: boolean | null;
+      }>
+    )
+      .filter((b) => !b.is_internal)
+      .reduce((sum, b) => sum + Number(b.total_price_mad), 0);
 
     return (
       <div className="space-y-5">

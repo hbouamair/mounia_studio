@@ -23,6 +23,7 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
   const [date, setDate] = useState("");
   const [startMinutes, setStartMinutes] = useState(18 * 60);
   const [duration, setDuration] = useState(60);
+  const [isInternal, setIsInternal] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -34,10 +35,27 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  function toggleInternal(next: boolean) {
+    setIsInternal(next);
+    if (next) {
+      setName("Blocage interne");
+      setEmail("");
+      setPhone("");
+      setStatus("confirmed");
+      setSendEmail(false);
+      setPaymentMethod("cash");
+      if (!note.trim()) setNote("Séance perso / indisponible");
+    }
+  }
+
   function submit() {
     setError(null);
     setSuccess(null);
-    if (!date || !name.trim() || !email.trim() || !phone.trim()) {
+    if (!date) {
+      setError("La date est requise.");
+      return;
+    }
+    if (!isInternal && (!name.trim() || !email.trim() || !phone.trim())) {
       setError("Date, nom, email et téléphone sont requis.");
       return;
     }
@@ -47,23 +65,30 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
         date,
         startMinutes,
         durationMinutes: duration,
-        name,
-        email,
-        phone,
+        name: isInternal ? name.trim() || "Blocage interne" : name,
+        email: isInternal ? email : email,
+        phone: isInternal ? phone : phone,
         note: note || undefined,
         paymentMethod,
-        status,
-        sendEmail,
+        status: isInternal ? "confirmed" : status,
+        sendEmail: isInternal ? false : sendEmail,
+        isInternal,
       });
       if (!result.ok) {
         setError(result.error ?? "Erreur");
         return;
       }
-      setSuccess(`Réservation ${result.reference} créée.`);
+      setSuccess(
+        isInternal
+          ? `Créneau bloqué (${result.reference}).`
+          : `Réservation ${result.reference} créée.`
+      );
       setName("");
       setEmail("");
       setPhone("");
       setNote("");
+      setIsInternal(false);
+      setSendEmail(true);
     });
   }
 
@@ -112,6 +137,24 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
             </div>
 
             <div className="space-y-4">
+              <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isInternal}
+                  onChange={(e) => toggleInternal(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded accent-violet-400"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-white">
+                    Blocage interne (séance perso)
+                  </span>
+                  <span className="block text-xs text-white/45 mt-0.5 leading-relaxed">
+                    Occupe le calendrier, prix 0 MAD, hors chiffre d&apos;affaires.
+                    Aucun email client.
+                  </span>
+                </span>
+              </label>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>Studio</label>
@@ -166,37 +209,57 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
                 </div>
               </div>
 
-              <div>
-                <label className={labelClass}>Nom du client</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+              {!isInternal && (
+                <>
+                  <div>
+                    <label className={labelClass}>Nom du client</label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelClass}>Email</label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Téléphone</label>
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {isInternal && (
                 <div>
-                  <label className={labelClass}>Email</label>
+                  <label className={labelClass}>Libellé (calendrier)</label>
                   <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className={inputClass}
+                    placeholder="Blocage interne"
                   />
                 </div>
-                <div>
-                  <label className={labelClass}>Téléphone</label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
+              )}
+
               <div>
-                <label className={labelClass}>Note (optionnel)</label>
+                <label className={labelClass}>
+                  {isInternal ? "Motif (optionnel)" : "Note (optionnel)"}
+                </label>
                 <input
                   type="text"
                   value={note}
@@ -205,45 +268,49 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={labelClass}>Paiement</label>
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) =>
-                      setPaymentMethod(e.target.value as PaymentMethod)
-                    }
-                    className={inputClass}
-                  >
-                    <option value="cash">Espèces au studio</option>
-                    <option value="virement">Virement bancaire</option>
-                    <option value="paypal">PayPal</option>
-                  </select>
-                </div>
-                <div>
-                  <label className={labelClass}>Statut</label>
-                  <select
-                    value={status}
-                    onChange={(e) =>
-                      setStatus(e.target.value as "pending" | "confirmed")
-                    }
-                    className={inputClass}
-                  >
-                    <option value="confirmed">Confirmée (payée)</option>
-                    <option value="pending">En attente de paiement</option>
-                  </select>
-                </div>
-              </div>
+              {!isInternal && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelClass}>Paiement</label>
+                      <select
+                        value={paymentMethod}
+                        onChange={(e) =>
+                          setPaymentMethod(e.target.value as PaymentMethod)
+                        }
+                        className={inputClass}
+                      >
+                        <option value="cash">Espèces au studio</option>
+                        <option value="virement">Virement bancaire</option>
+                        <option value="paypal">PayPal</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelClass}>Statut</label>
+                      <select
+                        value={status}
+                        onChange={(e) =>
+                          setStatus(e.target.value as "pending" | "confirmed")
+                        }
+                        className={inputClass}
+                      >
+                        <option value="confirmed">Confirmée (payée)</option>
+                        <option value="pending">En attente de paiement</option>
+                      </select>
+                    </div>
+                  </div>
 
-              <label className="flex items-center gap-2 text-sm text-white/80">
-                <input
-                  type="checkbox"
-                  checked={sendEmail}
-                  onChange={(e) => setSendEmail(e.target.checked)}
-                  className="w-4 h-4 rounded accent-teal-400"
-                />
-                Envoyer un email au client
-              </label>
+                  <label className="flex items-center gap-2 text-sm text-white/80">
+                    <input
+                      type="checkbox"
+                      checked={sendEmail}
+                      onChange={(e) => setSendEmail(e.target.checked)}
+                      className="w-4 h-4 rounded accent-teal-400"
+                    />
+                    Envoyer un email au client
+                  </label>
+                </>
+              )}
 
               {error && (
                 <p className="text-sm font-semibold text-rose-300 bg-rose-400/10 border border-rose-400/25 rounded-xl px-4 py-3">
@@ -267,6 +334,8 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Création…
                   </>
+                ) : isInternal ? (
+                  "Bloquer le créneau"
                 ) : (
                   "Créer la réservation"
                 )}

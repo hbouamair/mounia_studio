@@ -234,6 +234,11 @@ function PackageRow({ bookings }: { bookings: BookingWithStudio[] }) {
           <span className="block text-xs text-white/40 mt-0.5">
             {primary.customer_phone}
           </span>
+          {primary.activity_type && (
+            <span className="block text-xs text-sky-300/80 mt-1">
+              {primary.activity_type}
+            </span>
+          )}
         </td>
         <td className="px-4 py-3.5 font-display font-bold whitespace-nowrap text-teal-300">
           {formatMad(total)}
@@ -532,6 +537,11 @@ function BookingRow({ booking }: { booking: BookingWithStudio }) {
       >
         <td className="px-4 py-3.5 font-bold text-white whitespace-nowrap tracking-wide">
           {booking.reference}
+          {booking.is_internal && (
+            <span className="block mt-1 admin-badge bg-violet-400/15 text-violet-200 border border-violet-400/30">
+              Interne
+            </span>
+          )}
         </td>
         <td className="px-4 py-3.5 whitespace-nowrap">
           <CourseTypeBadge type={resolveCourseType(booking)} />
@@ -561,6 +571,11 @@ function BookingRow({ booking }: { booking: BookingWithStudio }) {
           <span className="block text-xs text-white/40 mt-0.5">
             {booking.customer_phone}
           </span>
+          {booking.activity_type && (
+            <span className="block text-xs text-sky-300/80 mt-1 truncate max-w-[12rem]" title={booking.activity_type}>
+              {booking.activity_type}
+            </span>
+          )}
         </td>
         <td className="px-4 py-3.5 font-display font-bold whitespace-nowrap text-teal-300">
           {formatMad(Number(booking.total_price_mad))}
@@ -679,6 +694,27 @@ function BookingRow({ booking }: { booking: BookingWithStudio }) {
                     {COURSE_TYPE_LABELS[resolveCourseType(booking)]}
                   </span>
                 </p>
+                {booking.activity_type && (
+                  <p>
+                    <span className="text-white/40">Activité :</span>{" "}
+                    <span className="text-white/85 font-medium">
+                      {booking.activity_type}
+                    </span>
+                  </p>
+                )}
+                {booking.activity_description && (
+                  <p>
+                    <span className="text-white/40">Description :</span>{" "}
+                    <span className="text-white/85">
+                      {booking.activity_description}
+                    </span>
+                  </p>
+                )}
+                {booking.is_internal && (
+                  <p className="text-violet-300 text-sm font-medium">
+                    Blocage interne — hors chiffre d&apos;affaires
+                  </p>
+                )}
                 <p>
                   <span className="text-white/40">Email :</span>{" "}
                   <a

@@ -128,9 +128,17 @@ function summaryCard(ctx: BookingEmailContext): string {
       "Horaire",
       `${minutesToTimeString(booking.start_minutes)} – ${minutesToTimeString(endMinutes)} (${formatDurationLabel(booking.duration_minutes)})`,
     ],
-    ["Prix total", formatMad(Number(booking.total_price_mad))],
-    ["Paiement", PAYMENT_METHOD_LABELS[booking.payment_method]],
   ];
+  if (booking.activity_type) {
+    rows.push(["Activité", booking.activity_type]);
+  }
+  if (booking.activity_description) {
+    rows.push(["Description", booking.activity_description]);
+  }
+  rows.push(
+    ["Prix total", formatMad(Number(booking.total_price_mad))],
+    ["Paiement", PAYMENT_METHOD_LABELS[booking.payment_method]]
+  );
   const content = rows
     .map(
       ([label, value]) => `
@@ -248,6 +256,8 @@ export function getAdminNewBookingEmailHtml(ctx: BookingEmailContext): string {
      <p style="margin: 0 0 14px 0; font-size: 16px;"><a href="mailto:${escapeHtml(booking.customer_email)}" style="color: ${BRAND.primary}; font-weight: 600; text-decoration: none;">${escapeHtml(booking.customer_email)}</a></p>
      <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ${BRAND.softCharcoal};">Téléphone</p>
      <p style="margin: 0; font-size: 16px; font-weight: 600; color: ${BRAND.charcoal};">${escapeHtml(booking.customer_phone)}</p>
+     ${booking.activity_type ? `<p style="margin: 14px 0 4px 0; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ${BRAND.softCharcoal};">Activité</p><p style="margin: 0; font-size: 15px; color: ${BRAND.charcoal};">${escapeHtml(booking.activity_type)}</p>` : ""}
+     ${booking.activity_description ? `<p style="margin: 14px 0 4px 0; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ${BRAND.softCharcoal};">Description</p><p style="margin: 0; font-size: 15px; color: ${BRAND.charcoal};">${escapeHtml(booking.activity_description)}</p>` : ""}
      ${booking.note ? `<p style="margin: 14px 0 4px 0; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ${BRAND.softCharcoal};">Note</p><p style="margin: 0; font-size: 15px; color: ${BRAND.charcoal};">${escapeHtml(booking.note)}</p>` : ""}`
   );
   const body =

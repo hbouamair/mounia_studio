@@ -31,6 +31,7 @@ import {
   sendBookingConfirmedEmail,
   sendBookingReceivedEmail,
 } from "@/lib/booking/emails";
+import { CONTACT_EMAIL, CONTACT_PHONE_DISPLAY } from "@/lib/constants";
 import type {
   AboutPageContent,
   ContactPageContent,
@@ -338,15 +339,18 @@ export interface ManualBookingInput {
   paymentMethod: PaymentMethod;
   status: "pending" | "confirmed";
   sendEmail: boolean;
+  /** Personal / internal calendar block — price 0, no revenue. */
+  isInternal?: boolean;
 }
 
-/** Manual booking created by the admin (phone / WhatsApp reservations). */
+/** Manual booking created by the admin (phone / WhatsApp / internal block). */
 export async function createManualBooking(
   input: ManualBookingInput
 ): Promise<ActionResult & { reference?: string }> {
   try {
     await requireAdmin();
     const supabase = getSupabaseAdmin();
+    const isInternal = Boolean(input.isInternal);
 
     const { data: studioData } = await supabase
       .from("studios")
@@ -378,53 +382,121 @@ export async function createManualBooking(
       return { ok: false, error: "Ce créneau est déjà réservé." };
     }
 
-    const price = computeBookingPrice(
-      studio,
-      input.date,
-      input.startMinutes,
-      input.durationMinutes,
-      settings.peak_windows
-    );
+    const price = isInternal
+      ? { totalMad: 0 }
+      : computeBookingPrice(
+          studio,
+          input.date,
+          input.startMinutes,
+          input.durationMinutes,
+          settings.peak_windows
+        );
 
+    const status = isInternal ? "confirmed" : input.status;
     const deadlineMs =
-      input.status === "confirmed"
+      status === "confirmed"
         ? bookingStartUtc(input.date, input.startMinutes).getTime()
         : Math.min(
             Date.now() + settings.confirmation_deadline_hours * 3_600_000,
             bookingStartUtc(input.date, input.startMinutes).getTime()
           );
 
-    const { data, error } = await supabase
+    const customerName = (
+      input.name.trim() || (isInternal ? "Blocage interne" : "")
+    ).slice(0, 100);
+    if (!customerName) return { ok: false, error: "Le nom est requis." };
+
+    const customerEmail = isInternal
+      ? (input.email.trim() || CONTACT_EMAIL).toLowerCase()
+      : input.email.trim().toLowerCase();
+    const customerPhone = isInternal
+      ? input.phone.trim() || CONTACT_PHONE_DISPLAY
+      : input.phone.trim();
+
+    if (!isInternal) {
+      if (!customerEmail || !customerPhone) {
+        return { ok: false, error: "Email et téléphone sont requis." };
+      }
+    }
+
+    const row: Record<string, unknown> = {
+      reference: generateBookingReference(),
+      studio_id: input.studioId,
+      date: input.date,
+      start_minutes: input.startMinutes,
+      duration_minutes: input.durationMinutes,
+      total_price_mad: price.totalMad,
+      customer_name: customerName,
+      customer_email: customerEmail,
+      customer_phone: customerPhone,
+      note: input.note?.trim() || null,
+      payment_method: input.paymentMethod,
+      status,
+      payment_deadline: new Date(deadlineMs).toISOString(),
+      admin_note: isInternal
+        ? "Blocage interne — hors CA"
+        : "Créée manuellement par l'admin",
+      is_internal: isInternal,
+      activity_type: isInternal ? "Interne" : null,
+      activity_description: isInternal
+        ? input.note?.trim() || "Séance personnelle / indisponible"
+        : null,
+    };
+
+    let { data, error } = await supabase
       .from("bookings")
-      .insert({
-        reference: generateBookingReference(),
-        studio_id: input.studioId,
-        date: input.date,
-        start_minutes: input.startMinutes,
-        duration_minutes: input.durationMinutes,
-        total_price_mad: price.totalMad,
-        customer_name: input.name.trim(),
-        customer_email: input.email.trim().toLowerCase(),
-        customer_phone: input.phone.trim(),
-        note: input.note?.trim() || null,
-        payment_method: input.paymentMethod,
-        status: input.status,
-        payment_deadline: new Date(deadlineMs).toISOString(),
-        admin_note: "Créée manuellement par l'admin",
-      })
+      .insert(row)
       .select("*")
       .single();
+
+    if (
+      error &&
+      (error.code === "42703" ||
+        error.message?.includes("is_internal") ||
+        error.message?.includes("activity_type") ||
+        error.message?.includes("activity_description"))
+    ) {
+      const legacy = { ...row };
+      delete legacy.is_internal;
+      delete legacy.activity_type;
+      delete legacy.activity_description;
+      if (isInternal) {
+        legacy.total_price_mad = 0;
+        legacy.admin_note = "Blocage interne — hors CA (migration à exécuter)";
+        const noteBits = [
+          typeof legacy.note === "string" ? legacy.note : null,
+          "BLOCAGE INTERNE",
+        ].filter(Boolean);
+        legacy.note = noteBits.join(" · ");
+      }
+      ({ data, error } = await supabase
+        .from("bookings")
+        .insert(legacy)
+        .select("*")
+        .single());
+    }
+
     if (error || !data) {
       if (error?.code === "23P01") {
         return { ok: false, error: "Ce créneau est déjà réservé." };
+      }
+      if (
+        error?.message?.includes("is_internal") ||
+        error?.message?.includes("activity_")
+      ) {
+        return {
+          ok: false,
+          error:
+            "Exécutez supabase/activity-and-block-migration.sql dans Supabase.",
+        };
       }
       throw new Error(error?.message ?? "Insertion impossible");
     }
     const booking = data as Booking;
 
-    if (input.sendEmail) {
+    if (!isInternal && input.sendEmail) {
       const ctx = { booking, studio, settings };
-      if (input.status === "confirmed") {
+      if (status === "confirmed") {
         const emailResult = await sendBookingConfirmedEmail(ctx);
         if (!emailResult.ok) {
           return {
@@ -439,7 +511,11 @@ export async function createManualBooking(
     }
 
     revalidateAdmin();
-    return { ok: true, reference: booking.reference };
+    return {
+      ok: true,
+      reference: booking.reference,
+      message: isInternal ? "Créneau bloqué." : "Réservation créée.",
+    };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
   }
