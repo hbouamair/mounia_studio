@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Loader2, Plus, X } from "lucide-react";
-import type { PaymentMethod, Studio } from "@/lib/booking/types";
+import type { PaymentMethod, PeakWindow, Studio } from "@/lib/booking/types";
 import {
+  computeBookingPrice,
   durationOptions,
   formatDurationLabel,
+  formatMad,
   minutesToTimeString,
   SLOT_STEP_MINUTES,
 } from "@/lib/booking/pricing";
-import { createManualBooking } from "@/app/admin/actions";
+import {
+  createManualBooking,
+  createRecurringInternalBlocks,
+} from "@/app/admin/actions";
 
 /** Start-time options every 30 min between 06:00 and 23:30. */
 const START_OPTIONS = Array.from(
@@ -17,23 +22,88 @@ const START_OPTIONS = Array.from(
   (_, i) => 6 * 60 + i * SLOT_STEP_MINUTES
 );
 
-export default function ManualBookingButton({ studios }: { studios: Studio[] }) {
+const WEEKDAY_FR = [
+  "dimanche",
+  "lundi",
+  "mardi",
+  "mercredi",
+  "jeudi",
+  "vendredi",
+  "samedi",
+] as const;
+
+function weekdayLabel(date: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  const [y, m, d] = date.split("-").map(Number);
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return WEEKDAY_FR[dow] ?? null;
+}
+
+function estimateWeeklyCount(startDate: string, months: 1 | 3 | 6): number {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) return 0;
+  const [y, m, d] = startDate.split("-").map(Number);
+  const start = Date.UTC(y, m - 1, d);
+  const endDt = new Date(Date.UTC(y, m - 1, d));
+  endDt.setUTCMonth(endDt.getUTCMonth() + months);
+  const end = endDt.getTime();
+  let n = 0;
+  for (let t = start; t < end; t += 7 * 24 * 60 * 60 * 1000) n += 1;
+  return n;
+}
+
+export default function ManualBookingButton({
+  studios,
+  peakWindows,
+}: {
+  studios: Studio[];
+  peakWindows: PeakWindow[];
+}) {
   const [open, setOpen] = useState(false);
   const [studioId, setStudioId] = useState(studios[0]?.id ?? 0);
   const [date, setDate] = useState("");
   const [startMinutes, setStartMinutes] = useState(18 * 60);
   const [duration, setDuration] = useState(60);
   const [isInternal, setIsInternal] = useState(false);
+  const [recurring, setRecurring] = useState(false);
+  const [recurringMonths, setRecurringMonths] = useState<1 | 3 | 6>(3);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
+  const [customPrice, setCustomPrice] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [status, setStatus] = useState<"pending" | "confirmed">("confirmed");
   const [sendEmail, setSendEmail] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const dayName = weekdayLabel(date);
+  const estimatedSlots = recurring
+    ? estimateWeeklyCount(date, recurringMonths)
+    : 0;
+
+  const studio = studios.find((s) => s.id === studioId) ?? studios[0];
+
+  const calculatedPriceMad = useMemo(() => {
+    if (isInternal || !studio || !date) return null;
+    try {
+      return computeBookingPrice(
+        studio,
+        date,
+        startMinutes,
+        duration,
+        peakWindows
+      ).totalMad;
+    } catch {
+      return null;
+    }
+  }, [isInternal, studio, date, startMinutes, duration, peakWindows]);
+
+  const pricePreview =
+    customPrice.trim() !== ""
+      ? Number(customPrice.replace(",", "."))
+      : calculatedPriceMad;
 
   function toggleInternal(next: boolean) {
     setIsInternal(next);
@@ -44,8 +114,23 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
       setStatus("confirmed");
       setSendEmail(false);
       setPaymentMethod("cash");
+      setCustomPrice("");
       if (!note.trim()) setNote("Séance perso / indisponible");
+    } else {
+      setRecurring(false);
     }
+  }
+
+  function resetFormAfterSuccess() {
+    setName("");
+    setEmail("");
+    setPhone("");
+    setNote("");
+    setCustomPrice("");
+    setIsInternal(false);
+    setRecurring(false);
+    setRecurringMonths(3);
+    setSendEmail(true);
   }
 
   function submit() {
@@ -59,7 +144,37 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
       setError("Date, nom, email et téléphone sont requis.");
       return;
     }
+    if (!isInternal && customPrice.trim() !== "") {
+      const n = Number(customPrice.replace(",", "."));
+      if (!Number.isFinite(n) || n < 0) {
+        setError("Prix invalide.");
+        return;
+      }
+    }
     startTransition(async () => {
+      if (isInternal && recurring) {
+        const result = await createRecurringInternalBlocks({
+          studioId,
+          startDate: date,
+          startMinutes,
+          durationMinutes: duration,
+          months: recurringMonths,
+          name: name.trim() || "Cours régulier (blocage)",
+          note: note || undefined,
+        });
+        if (!result.ok) {
+          setError(result.error ?? "Erreur");
+          return;
+        }
+        setSuccess(result.message ?? "Créneaux bloqués.");
+        resetFormAfterSuccess();
+        return;
+      }
+
+      const custom =
+        !isInternal && customPrice.trim() !== ""
+          ? Number(customPrice.replace(",", "."))
+          : undefined;
       const result = await createManualBooking({
         studioId,
         date,
@@ -73,6 +188,7 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
         status: isInternal ? "confirmed" : status,
         sendEmail: isInternal ? false : sendEmail,
         isInternal,
+        totalPriceMad: custom,
       });
       if (!result.ok) {
         setError(result.error ?? "Erreur");
@@ -83,12 +199,7 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
           ? `Créneau bloqué (${result.reference}).`
           : `Réservation ${result.reference} créée.`
       );
-      setName("");
-      setEmail("");
-      setPhone("");
-      setNote("");
-      setIsInternal(false);
-      setSendEmail(true);
+      resetFormAfterSuccess();
     });
   }
 
@@ -146,14 +257,68 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
                 />
                 <span>
                   <span className="block text-sm font-semibold text-white">
-                    Blocage interne (séance perso)
+                    Blocage interne (séance perso / cours régulier)
                   </span>
                   <span className="block text-xs text-white/45 mt-0.5 leading-relaxed">
-                    Occupe le calendrier, prix 0 MAD, hors chiffre d&apos;affaires.
-                    Aucun email client.
+                    Occupe le calendrier, prix 0 MAD, hors chiffre
+                    d&apos;affaires. Aucun email client.
                   </span>
                 </span>
               </label>
+
+              {isInternal && (
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 space-y-3">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={recurring}
+                      onChange={(e) => setRecurring(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded accent-violet-400"
+                    />
+                    <span>
+                      <span className="block text-sm font-semibold text-white">
+                        Récurrence hebdomadaire
+                      </span>
+                      <span className="block text-xs text-white/45 mt-0.5 leading-relaxed">
+                        Ex. Bachata chaque mercredi — un seul réglage pour tous
+                        les créneaux.
+                      </span>
+                    </span>
+                  </label>
+                  {recurring && (
+                    <div>
+                      <label className={labelClass}>Durée de la série</label>
+                      <select
+                        value={recurringMonths}
+                        onChange={(e) =>
+                          setRecurringMonths(
+                            Number(e.target.value) as 1 | 3 | 6
+                          )
+                        }
+                        className={inputClass}
+                      >
+                        <option value={1}>1 mois</option>
+                        <option value={3}>3 mois</option>
+                        <option value={6}>6 mois</option>
+                      </select>
+                      {dayName && estimatedSlots > 0 && (
+                        <p className="mt-2 text-xs text-white/50 leading-relaxed">
+                          Tous les{" "}
+                          <span className="text-white/80 font-medium">
+                            {dayName}s
+                          </span>{" "}
+                          pendant {recurringMonths} mois ≈{" "}
+                          <span className="text-teal-300 font-semibold">
+                            {estimatedSlots} créneaux
+                          </span>
+                          . Les jours déjà réservés ou hors horaires sont
+                          ignorés.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -171,13 +336,22 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
                   </select>
                 </div>
                 <div>
-                  <label className={labelClass}>Date</label>
+                  <label className={labelClass}>
+                    {isInternal && recurring
+                      ? "1ʳᵉ date (définit le jour)"
+                      : "Date"}
+                  </label>
                   <input
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     className={inputClass}
                   />
+                  {isInternal && recurring && dayName && (
+                    <p className="mt-1.5 text-[11px] text-white/40">
+                      Jour répété : chaque {dayName}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className={labelClass}>Heure de début</label>
@@ -211,6 +385,41 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
 
               {!isInternal && (
                 <>
+                  <div>
+                    <label className={labelClass}>
+                      Prix (MAD) — optionnel
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      step={1}
+                      value={customPrice}
+                      onChange={(e) => setCustomPrice(e.target.value)}
+                      className={inputClass}
+                      placeholder={
+                        calculatedPriceMad != null
+                          ? `Auto : ${calculatedPriceMad}`
+                          : "Laisser vide = calcul auto"
+                      }
+                    />
+                    <p className="mt-1.5 text-[11px] text-white/40 leading-relaxed">
+                      {customPrice.trim()
+                        ? "Prix personnalisé appliqué."
+                        : date
+                          ? calculatedPriceMad != null
+                            ? `Calcul auto selon ${studio?.name ?? "studio"} + horaire : ${formatMad(calculatedPriceMad)}`
+                            : "Sélectionnez une date valide pour le calcul."
+                          : "Choisissez une date pour voir le tarif calculé, ou saisissez un prix."}
+                    </p>
+                    {pricePreview != null &&
+                      Number.isFinite(pricePreview) &&
+                      pricePreview >= 0 && (
+                        <p className="mt-2 text-sm font-semibold text-teal-300">
+                          Total : {formatMad(pricePreview)}
+                        </p>
+                      )}
+                  </div>
+
                   <div>
                     <label className={labelClass}>Nom du client</label>
                     <input
@@ -251,7 +460,11 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className={inputClass}
-                    placeholder="Blocage interne"
+                    placeholder={
+                      recurring
+                        ? "Ex. Cours Bachata"
+                        : "Blocage interne"
+                    }
                   />
                 </div>
               )}
@@ -265,6 +478,11 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   className={inputClass}
+                  placeholder={
+                    isInternal && recurring
+                      ? "Ex. Regular class Bachata"
+                      : undefined
+                  }
                 />
               </div>
 
@@ -334,6 +552,8 @@ export default function ManualBookingButton({ studios }: { studios: Studio[] }) 
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Création…
                   </>
+                ) : isInternal && recurring ? (
+                  `Bloquer ${estimatedSlots || "…"} créneaux`
                 ) : isInternal ? (
                   "Bloquer le créneau"
                 ) : (

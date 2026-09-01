@@ -526,6 +526,11 @@ export interface ManualBookingInput {
   sendEmail: boolean;
   /** Personal / internal calendar block — price 0, no revenue. */
   isInternal?: boolean;
+  /**
+   * Optional custom price. If omitted / empty, price is calculated from
+   * studio rates + peak windows for the selected date/time/duration.
+   */
+  totalPriceMad?: number;
 }
 
 /** Manual booking created by the admin (phone / WhatsApp / internal block). */
@@ -567,7 +572,7 @@ export async function createManualBooking(
       return { ok: false, error: "Ce créneau est déjà réservé." };
     }
 
-    const price = isInternal
+    const calculated = isInternal
       ? { totalMad: 0 }
       : computeBookingPrice(
           studio,
@@ -576,6 +581,17 @@ export async function createManualBooking(
           input.durationMinutes,
           settings.peak_windows
         );
+
+    let totalPriceMad = calculated.totalMad;
+    if (isInternal) {
+      totalPriceMad = 0;
+    } else if (
+      input.totalPriceMad != null &&
+      Number.isFinite(input.totalPriceMad) &&
+      input.totalPriceMad >= 0
+    ) {
+      totalPriceMad = Math.round(input.totalPriceMad * 100) / 100;
+    }
 
     const status = isInternal ? "confirmed" : input.status;
     const deadlineMs =
@@ -610,7 +626,7 @@ export async function createManualBooking(
       date: input.date,
       start_minutes: input.startMinutes,
       duration_minutes: input.durationMinutes,
-      total_price_mad: price.totalMad,
+      total_price_mad: totalPriceMad,
       customer_name: customerName,
       customer_email: customerEmail,
       customer_phone: customerPhone,
@@ -700,6 +716,233 @@ export async function createManualBooking(
       ok: true,
       reference: booking.reference,
       message: isInternal ? "Créneau bloqué." : "Réservation créée.",
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
+  }
+}
+
+export interface RecurringInternalBlockInput {
+  studioId: number;
+  /** First occurrence (YYYY-MM-DD) — defines the weekday. */
+  startDate: string;
+  startMinutes: number;
+  durationMinutes: number;
+  /** How far ahead to block every week. */
+  months: 1 | 3 | 6;
+  name: string;
+  note?: string;
+}
+
+function addMonthsYmd(date: string, months: number): string {
+  const [y, m, d] = date.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCMonth(dt.getUTCMonth() + months);
+  return dt.toISOString().slice(0, 10);
+}
+
+/** Weekly dates from startDate inclusive until untilExclusive (exclusive). */
+function enumerateWeeklyDates(
+  startDate: string,
+  untilExclusive: string
+): string[] {
+  const out: string[] = [];
+  const [y, m, d] = startDate.split("-").map(Number);
+  let t = Date.UTC(y, m - 1, d);
+  const [ey, em, ed] = untilExclusive.split("-").map(Number);
+  const end = Date.UTC(ey, em - 1, ed);
+  while (t < end) {
+    out.push(new Date(t).toISOString().slice(0, 10));
+    t += 7 * 24 * 60 * 60 * 1000;
+  }
+  return out;
+}
+
+/**
+ * Creates weekly internal blocks from a first date for 1 / 3 / 6 months
+ * (e.g. Bachata every Wednesday). Occupies the calendar, 0 MAD, hors CA.
+ */
+export async function createRecurringInternalBlocks(
+  input: RecurringInternalBlockInput
+): Promise<
+  ActionResult & {
+    created?: number;
+    skippedClosed?: number;
+    skippedBusy?: number;
+    groupId?: string;
+  }
+> {
+  try {
+    await requireAdmin();
+    const supabase = getSupabaseAdmin();
+
+    if (![1, 3, 6].includes(input.months)) {
+      return { ok: false, error: "Durée invalide (1, 3 ou 6 mois)." };
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(input.startDate)) {
+      return { ok: false, error: "Date de début invalide." };
+    }
+
+    const { data: studioData } = await supabase
+      .from("studios")
+      .select("*")
+      .eq("id", input.studioId)
+      .single();
+    if (!studioData) return { ok: false, error: "Studio introuvable." };
+
+    const settings = await fetchSettings(supabase);
+    const untilExclusive = addMonthsYmd(input.startDate, input.months);
+    const dates = enumerateWeeklyDates(input.startDate, untilExclusive);
+    if (dates.length === 0) {
+      return { ok: false, error: "Aucune date à bloquer." };
+    }
+
+    const end = input.startMinutes + input.durationMinutes;
+    const label = (
+      input.name.trim() || "Cours régulier (blocage)"
+    ).slice(0, 100);
+    const motif =
+      input.note?.trim() ||
+      `Cours régulier — chaque semaine × ${input.months} mois`;
+    const groupId = crypto.randomUUID();
+
+    await expireStalePendingBookings(supabase);
+
+    let created = 0;
+    let skippedClosed = 0;
+    let skippedBusy = 0;
+    let packageIndex = 0;
+
+    for (const date of dates) {
+      const opening = openingForDate(settings.opening_hours, date);
+      if (
+        !opening ||
+        input.startMinutes < opening.open ||
+        end > opening.close
+      ) {
+        skippedClosed += 1;
+        continue;
+      }
+
+      const busy = await fetchBusySlots(input.studioId, date, supabase);
+      if (
+        busy.some((b) =>
+          intervalsOverlap(
+            input.startMinutes,
+            end,
+            b.start_minutes,
+            b.start_minutes + b.duration_minutes
+          )
+        )
+      ) {
+        skippedBusy += 1;
+        continue;
+      }
+
+      packageIndex += 1;
+      const deadlineMs = bookingStartUtc(date, input.startMinutes).getTime();
+      const row: Record<string, unknown> = {
+        reference: generateBookingReference(),
+        studio_id: input.studioId,
+        date,
+        start_minutes: input.startMinutes,
+        duration_minutes: input.durationMinutes,
+        total_price_mad: 0,
+        customer_name: label,
+        customer_email: CONTACT_EMAIL.toLowerCase(),
+        customer_phone: CONTACT_PHONE_DISPLAY,
+        note: motif,
+        payment_method: "cash",
+        status: "confirmed",
+        payment_deadline: new Date(deadlineMs).toISOString(),
+        admin_note: `Blocage récurrent — hors CA · ${input.months} mois`,
+        is_internal: true,
+        activity_type: "Interne",
+        activity_description: motif,
+        package_group_id: groupId,
+        package_index: packageIndex,
+        regular_course_count: dates.length,
+      };
+
+      let { error } = await supabase.from("bookings").insert(row);
+
+      if (
+        error &&
+        (error.code === "42703" ||
+          error.message?.includes("is_internal") ||
+          error.message?.includes("activity_type") ||
+          error.message?.includes("activity_description") ||
+          error.message?.includes("package_group_id") ||
+          error.message?.includes("package_index") ||
+          error.message?.includes("regular_course_count"))
+      ) {
+        const legacy = { ...row };
+        delete legacy.is_internal;
+        delete legacy.activity_type;
+        delete legacy.activity_description;
+        if (error.message?.includes("package_")) {
+          delete legacy.package_group_id;
+          delete legacy.package_index;
+          delete legacy.regular_course_count;
+        }
+        legacy.total_price_mad = 0;
+        legacy.admin_note = `Blocage récurrent — hors CA · ${input.months} mois · série ${groupId}`;
+        const noteBits = [
+          typeof legacy.note === "string" ? legacy.note : null,
+          "BLOCAGE INTERNE RÉCURRENT",
+        ].filter(Boolean);
+        legacy.note = noteBits.join(" · ");
+        ({ error } = await supabase.from("bookings").insert(legacy));
+      }
+
+      if (error) {
+        if (error.code === "23P01") {
+          skippedBusy += 1;
+          packageIndex -= 1;
+          continue;
+        }
+        if (
+          error.message?.includes("is_internal") ||
+          error.message?.includes("activity_")
+        ) {
+          return {
+            ok: false,
+            error:
+              "Exécutez supabase/activity-and-block-migration.sql dans Supabase.",
+            created,
+            skippedClosed,
+            skippedBusy,
+          };
+        }
+        throw new Error(error.message ?? "Insertion impossible");
+      }
+      created += 1;
+    }
+
+    if (created === 0) {
+      return {
+        ok: false,
+        error:
+          skippedBusy > 0
+            ? "Tous les créneaux étaient déjà réservés."
+            : "Aucun créneau créé (studio fermé ces jours-là ?).",
+        created: 0,
+        skippedClosed,
+        skippedBusy,
+      };
+    }
+
+    revalidateAdmin();
+    const parts = [`${created} créneau${created > 1 ? "x" : ""} bloqué${created > 1 ? "s" : ""}`];
+    if (skippedBusy > 0) parts.push(`${skippedBusy} déjà pris`);
+    if (skippedClosed > 0) parts.push(`${skippedClosed} hors horaires`);
+    return {
+      ok: true,
+      message: parts.join(" · "),
+      created,
+      skippedClosed,
+      skippedBusy,
+      groupId,
     };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erreur" };

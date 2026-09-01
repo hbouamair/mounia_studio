@@ -6,6 +6,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   expireStalePendingBookings,
   fetchAllStudios,
+  fetchSettings,
 } from "@/lib/booking/db";
 import type { BookingWithStudio } from "@/lib/booking/types";
 import BookingFilters from "@/components/admin/BookingFilters";
@@ -216,6 +217,7 @@ export default async function AdminBookingsPage({
 
     const studios = await fetchAllStudios(supabase);
     const activeStudios = studios.filter((s) => s.active);
+    const settings = await fetchSettings(supabase);
 
     const weekStart = startOfWeek(
       params.week && /^\d{4}-\d{2}-\d{2}$/.test(params.week)
@@ -355,7 +357,10 @@ export default async function AdminBookingsPage({
                 studioId: params.studio ? Number(params.studio) : undefined,
               }}
             />
-            <ManualBookingButton studios={activeStudios} />
+            <ManualBookingButton
+              studios={activeStudios}
+              peakWindows={settings.peak_windows}
+            />
           </div>
         </div>
 
