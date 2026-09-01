@@ -452,10 +452,22 @@ export async function POST(request: NextRequest) {
       const slot = slots[i];
       const totalMad = allocatedTotals[i] ?? 0;
 
+      const activityNoteParts = [
+        input.activityType?.trim()
+          ? `Activité: ${input.activityType.trim()}`
+          : null,
+        input.activityDescription?.trim()
+          ? `Description: ${input.activityDescription.trim()}`
+          : null,
+      ].filter(Boolean);
       const packageNote = isPackage
         ? `Séance ${i + 1}/${slots.length} du forfait`
         : "";
-      const noteParts = [baseNote, packageNote].filter(Boolean);
+      const noteParts = [
+        ...activityNoteParts,
+        baseNote,
+        packageNote,
+      ].filter(Boolean);
 
       let booking: Booking | null = null;
       for (let attempt = 0; attempt < 2 && !booking; attempt++) {

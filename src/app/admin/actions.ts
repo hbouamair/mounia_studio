@@ -327,6 +327,191 @@ export async function saveAdminNote(
   }
 }
 
+export interface UpdateBookingInput {
+  studioId: number;
+  date: string;
+  startMinutes: number;
+  durationMinutes: number;
+  name: string;
+  email: string;
+  phone: string;
+  note?: string;
+  activityType?: string;
+  activityDescription?: string;
+  courseType?: "group" | "private";
+  paymentMethod: PaymentMethod;
+  /** If true, recompute price from studio rates (ignored for internal blocks). */
+  recalculatePrice?: boolean;
+  /** Manual price override when recalculatePrice is false. */
+  totalPriceMad?: number;
+}
+
+/** Edit an existing booking (slot, client, activity, price). */
+export async function updateBooking(
+  id: string,
+  input: UpdateBookingInput
+): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+    const supabase = getSupabaseAdmin();
+    const existing = await fetchBookingWithStudio(id);
+
+    if (["cancelled", "expired"].includes(existing.status)) {
+      return {
+        ok: false,
+        error: "Impossible de modifier une réservation annulée ou expirée.",
+      };
+    }
+
+    if (
+      !Number.isInteger(input.studioId) ||
+      input.studioId <= 0 ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(input.date) ||
+      !Number.isInteger(input.startMinutes) ||
+      input.startMinutes < 0 ||
+      input.startMinutes >= 1440 ||
+      input.startMinutes % 30 !== 0 ||
+      !Number.isInteger(input.durationMinutes) ||
+      input.durationMinutes < 60 ||
+      input.durationMinutes % 30 !== 0
+    ) {
+      return { ok: false, error: "Créneau invalide." };
+    }
+
+    const name = input.name.trim();
+    const email = input.email.trim().toLowerCase();
+    const phone = input.phone.trim();
+    if (!name || name.length > 100) {
+      return { ok: false, error: "Le nom est requis." };
+    }
+    if (!existing.is_internal) {
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { ok: false, error: "Email invalide." };
+      }
+      if (!phone || phone.length > 30) {
+        return { ok: false, error: "Téléphone invalide." };
+      }
+    }
+
+    const { data: studioData } = await supabase
+      .from("studios")
+      .select("*")
+      .eq("id", input.studioId)
+      .single();
+    if (!studioData) return { ok: false, error: "Studio introuvable." };
+    const studio = studioData as Studio;
+    const settings = await fetchSettings(supabase);
+
+    const opening = openingForDate(settings.opening_hours, input.date);
+    const end = input.startMinutes + input.durationMinutes;
+    if (!opening || input.startMinutes < opening.open || end > opening.close) {
+      return { ok: false, error: "Créneau en dehors des horaires d'ouverture." };
+    }
+
+    await expireStalePendingBookings(supabase);
+
+    const { data: sameDay } = await supabase
+      .from("bookings")
+      .select("id, start_minutes, duration_minutes")
+      .eq("studio_id", input.studioId)
+      .eq("date", input.date)
+      .in("status", ["pending", "confirmed"])
+      .neq("id", id);
+
+    const conflict = (sameDay ?? []).some((b) =>
+      intervalsOverlap(
+        input.startMinutes,
+        end,
+        b.start_minutes,
+        b.start_minutes + b.duration_minutes
+      )
+    );
+    if (conflict) {
+      return { ok: false, error: "Ce créneau chevauche une autre réservation." };
+    }
+
+    let totalPriceMad = Number(existing.total_price_mad);
+    if (existing.is_internal) {
+      totalPriceMad = 0;
+    } else if (input.recalculatePrice) {
+      const price = computeBookingPrice(
+        studio,
+        input.date,
+        input.startMinutes,
+        input.durationMinutes,
+        settings.peak_windows
+      );
+      totalPriceMad = price.totalMad;
+    } else if (
+      input.totalPriceMad != null &&
+      Number.isFinite(input.totalPriceMad) &&
+      input.totalPriceMad >= 0
+    ) {
+      totalPriceMad = Math.round(input.totalPriceMad * 100) / 100;
+    }
+
+    const activityType = input.activityType?.trim() || null;
+    const activityDescription = input.activityDescription?.trim() || null;
+
+    const patch: Record<string, unknown> = {
+      studio_id: input.studioId,
+      date: input.date,
+      start_minutes: input.startMinutes,
+      duration_minutes: input.durationMinutes,
+      customer_name: name,
+      customer_email: email || existing.customer_email,
+      customer_phone: phone || existing.customer_phone,
+      note: input.note?.trim() || null,
+      payment_method: input.paymentMethod,
+      total_price_mad: totalPriceMad,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (input.courseType === "group" || input.courseType === "private") {
+      patch.course_type = input.courseType;
+    }
+
+    if (activityType != null || activityDescription != null) {
+      patch.activity_type = activityType;
+      patch.activity_description = activityDescription;
+    }
+
+    let { error } = await supabase.from("bookings").update(patch).eq("id", id);
+
+    if (
+      error &&
+      (error.code === "42703" ||
+        error.message?.includes("activity_type") ||
+        error.message?.includes("activity_description"))
+    ) {
+      delete patch.activity_type;
+      delete patch.activity_description;
+      const activityBits = [
+        activityType ? `Activité: ${activityType}` : null,
+        activityDescription ? `Description: ${activityDescription}` : null,
+      ].filter(Boolean);
+      if (activityBits.length) {
+        const base =
+          typeof patch.note === "string" && patch.note ? patch.note : "";
+        patch.note = [activityBits.join(" · "), base].filter(Boolean).join(" · ");
+      }
+      ({ error } = await supabase.from("bookings").update(patch).eq("id", id));
+    }
+
+    if (error) {
+      if (error.code === "23P01") {
+        return { ok: false, error: "Ce créneau chevauche une autre réservation." };
+      }
+      throw new Error(error.message);
+    }
+
+    revalidateAdmin();
+    return { ok: true, message: "Réservation mise à jour." };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
+  }
+}
+
 export interface ManualBookingInput {
   studioId: number;
   date: string;

@@ -6,7 +6,16 @@ import { Search } from "lucide-react";
 import type { Studio } from "@/lib/booking/types";
 import { BOOKING_STATUS_LABELS } from "@/lib/booking/types";
 
-export default function BookingFilters({ studios }: { studios: Studio[] }) {
+const ACTIVE_STATUSES = ["pending", "confirmed", "completed"] as const;
+const ARCHIVE_STATUSES = ["cancelled", "expired"] as const;
+
+export default function BookingFilters({
+  studios,
+  archiveMode = false,
+}: {
+  studios: Studio[];
+  archiveMode?: boolean;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -43,6 +52,31 @@ export default function BookingFilters({ studios }: { studios: Studio[] }) {
     };
   }, [search, searchParams, router, pathname]);
 
+  const statusValue = searchParams.get("status") ?? "";
+  const statusSelectValue = archiveMode
+    ? statusValue === "cancelled" || statusValue === "expired"
+      ? statusValue
+      : "archive"
+    : ACTIVE_STATUSES.includes(statusValue as (typeof ACTIVE_STATUSES)[number])
+      ? statusValue
+      : "";
+
+  const statusOptions = archiveMode
+    ? [
+        { value: "archive", label: "Toutes les archives" },
+        ...ARCHIVE_STATUSES.map((value) => ({
+          value,
+          label: BOOKING_STATUS_LABELS[value],
+        })),
+      ]
+    : [
+        { value: "", label: "Tous les statuts actifs" },
+        ...ACTIVE_STATUSES.map((value) => ({
+          value,
+          label: BOOKING_STATUS_LABELS[value],
+        })),
+      ];
+
   return (
     <div className="flex flex-wrap items-center gap-2.5">
       <div className="relative min-w-[13rem] flex-1 sm:flex-none">
@@ -61,15 +95,14 @@ export default function BookingFilters({ studios }: { studios: Studio[] }) {
       </div>
 
       <select
-        value={searchParams.get("status") ?? ""}
+        value={statusSelectValue}
         onChange={(e) => setParam("status", e.target.value, true)}
         className="admin-input w-auto min-w-[10rem] cursor-pointer"
         aria-label="Filtrer par statut"
       >
-        <option value="">Tous les statuts</option>
-        {Object.entries(BOOKING_STATUS_LABELS).map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
+        {statusOptions.map((opt) => (
+          <option key={opt.value || "all"} value={opt.value}>
+            {opt.label}
           </option>
         ))}
       </select>

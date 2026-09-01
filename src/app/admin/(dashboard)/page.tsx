@@ -50,7 +50,14 @@ interface ListFilters {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyListFilters(query: any, filters: ListFilters) {
   let q = query;
-  if (filters.status) q = q.eq("status", filters.status);
+  if (filters.status === "archive") {
+    q = q.in("status", ["cancelled", "expired"]);
+  } else if (filters.status) {
+    q = q.eq("status", filters.status);
+  } else {
+    // Default list: hide archived (cancelled / expired)
+    q = q.in("status", ["pending", "confirmed", "completed"]);
+  }
   if (filters.studio) q = q.eq("studio_id", Number(filters.studio));
   if (filters.from) q = q.gte("date", filters.from);
   if (filters.to) q = q.lte("date", filters.to);
@@ -230,14 +237,36 @@ export default async function AdminBookingsPage({
       q: params.q,
     };
 
+    const isArchiveView =
+      params.status === "archive" ||
+      params.status === "cancelled" ||
+      params.status === "expired";
+
     const page = Math.max(1, Number(params.page) || 1);
 
     // One fetch for tabs + pagination: count forfaits as 1 row, not N séances
-    const primaryMetaAll = await fetchPrimaryListMeta(supabase, {
-      ...listFilters,
-      studio: undefined,
-    });
+    const [primaryMetaAll, activeMetaForTab, archiveMetaForTab] =
+      await Promise.all([
+        fetchPrimaryListMeta(supabase, {
+          ...listFilters,
+          studio: undefined,
+        }),
+        fetchPrimaryListMeta(supabase, {
+          from: listFilters.from,
+          to: listFilters.to,
+          q: listFilters.q,
+          status: undefined,
+        }),
+        fetchPrimaryListMeta(supabase, {
+          from: listFilters.from,
+          to: listFilters.to,
+          q: listFilters.q,
+          status: "archive",
+        }),
+      ]);
     const totalTabCount = primaryMetaAll.length;
+    const activeTabCount = activeMetaForTab.length;
+    const archiveTabCount = archiveMetaForTab.length;
     const studioTabCounts = studios.map(
       (s) => primaryMetaAll.filter((b) => b.studio_id === s.id).length
     );
@@ -358,16 +387,51 @@ export default async function AdminBookingsPage({
         {/* 4 — Liste détaillée */}
         <section className="space-y-3">
           <SectionHeading
-            title="Liste des réservations"
+            title={
+              isArchiveView
+                ? "Archives des réservations"
+                : "Liste des réservations"
+            }
             subtitle={
               totalCount > 0
                 ? `${totalCount} résultat${totalCount > 1 ? "s" : ""} · ${PER_PAGE} par page`
-                : "Recherche, filtres et confirmation des paiements"
+                : isArchiveView
+                  ? "Annulées et expirées"
+                  : "Recherche, filtres et confirmation des paiements"
             }
           />
 
           <div className="admin-card p-3 sm:p-4 space-y-3">
-            <BookingFilters studios={studios} />
+            <div
+              className="flex flex-wrap gap-2"
+              role="tablist"
+              aria-label="Actives ou archives"
+            >
+              <StudioTab
+                href={buildHref(params, {
+                  status: undefined,
+                  page: undefined,
+                })}
+                active={!isArchiveView}
+                label="Actives"
+                count={activeTabCount}
+              />
+              <StudioTab
+                href={buildHref(params, {
+                  status: "archive",
+                  page: undefined,
+                })}
+                active={isArchiveView}
+                label="Archives"
+                count={archiveTabCount}
+              />
+            </div>
+            <BookingFilters studios={studios} archiveMode={isArchiveView} />
+            {isArchiveView && (
+              <p className="text-xs text-white/40 px-0.5">
+                Annulées et expirées — masquées de la liste principale.
+              </p>
+            )}
             <div
               className="flex flex-wrap gap-2"
               role="tablist"
@@ -401,7 +465,7 @@ export default async function AdminBookingsPage({
             hrefForPage={(p) => buildHref(params, { page: String(p) })}
           />
 
-          <BookingsTable bookings={bookings} />
+          <BookingsTable bookings={bookings} studios={activeStudios} />
 
           <BookingsPagination
             page={displayPage}
@@ -461,7 +525,7 @@ function StudioTab({
   href: string;
   active: boolean;
   label: string;
-  count: number;
+  count?: number;
 }) {
   return (
     <Link
@@ -475,6 +539,7 @@ function StudioTab({
       }`}
     >
       {label}
+      {typeof count === "number" && (
       <span
         className={`tabular-nums px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
           active ? "bg-teal-400/20" : "bg-white/[0.06]"
@@ -482,6 +547,7 @@ function StudioTab({
       >
         {count}
       </span>
+      )}
     </Link>
   );
 }

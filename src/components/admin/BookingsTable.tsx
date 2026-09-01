@@ -8,9 +8,11 @@ import {
   Flag,
   Layers,
   Loader2,
+  Pencil,
+  Sparkles,
   X,
 } from "lucide-react";
-import type { BookingWithStudio, CourseType } from "@/lib/booking/types";
+import type { BookingWithStudio, CourseType, Studio } from "@/lib/booking/types";
 import {
   BOOKING_STATUS_LABELS,
   COURSE_TYPE_LABELS,
@@ -39,6 +41,7 @@ import {
   saveAdminNote,
 } from "@/app/admin/actions";
 import { useAdminFeedback } from "@/components/admin/AdminFeedback";
+import EditBookingDialog from "@/components/admin/EditBookingForm";
 
 const STATUS_BADGES: Record<string, string> = {
   pending: "admin-badge-pending",
@@ -73,6 +76,85 @@ function CourseTypeBadge({ type }: { type: CourseType }) {
   );
 }
 
+/** Resolve activity fields from dedicated columns, or from note fallback. */
+function resolveActivity(booking: {
+  activity_type?: string | null;
+  activity_description?: string | null;
+  note?: string | null;
+}): { type: string | null; description: string | null } {
+  let type = booking.activity_type?.trim() || null;
+  let description = booking.activity_description?.trim() || null;
+
+  if ((!type || !description) && booking.note) {
+    const typeMatch = booking.note.match(/Activité\s*:\s*([^·|]+)/i);
+    const descMatch = booking.note.match(
+      /(?:Détail|Description)\s*:\s*([^·|]+)/i
+    );
+    if (!type && typeMatch?.[1]) type = typeMatch[1].trim();
+    if (!description && descMatch?.[1]) description = descMatch[1].trim();
+
+    // Last resort: if note looks like a free-text activity but has no labels
+    if (!description && !typeMatch && booking.note.trim().length >= 3) {
+      const cleaned = booking.note
+        .replace(/Séance\s+\d+\s*\/\s*\d+\s*du forfait[^·|]*/gi, "")
+        .replace(/Refs\s*:\s*[A-Za-z0-9,\s-]+/gi, "")
+        .replace(/\s*·\s*/g, " ")
+        .trim();
+      if (cleaned.length >= 3 && !description) {
+        description = cleaned.slice(0, 280);
+      }
+    }
+  }
+
+  return { type, description };
+}
+
+function ActivityCell({
+  booking,
+}: {
+  booking: {
+    activity_type?: string | null;
+    activity_description?: string | null;
+    note?: string | null;
+  };
+}) {
+  const { type, description } = resolveActivity(booking);
+
+  if (!type && !description) {
+    return (
+      <span className="text-xs text-white/25 italic">Non renseignée</span>
+    );
+  }
+
+  return (
+    <div className="min-w-[13rem] max-w-[18rem] rounded-xl border border-amber-400/20 bg-gradient-to-br from-amber-400/[0.1] to-transparent px-3 py-2.5">
+      {type ? (
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-amber-200">
+          <Sparkles className="w-3 h-3 shrink-0" aria-hidden />
+          {type}
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white/35">
+          <Sparkles className="w-3 h-3 shrink-0" aria-hidden />
+          Activité
+        </span>
+      )}
+      {description ? (
+        <p
+          className="mt-1.5 text-[12.5px] leading-relaxed text-white/85 line-clamp-3"
+          title={description}
+        >
+          {description}
+        </p>
+      ) : (
+        <p className="mt-1.5 text-[11px] text-white/30 italic">
+          Pas de description
+        </p>
+      )}
+    </div>
+  );
+}
+
 function formatCreatedAt(iso: string): string {
   return new Date(iso).toLocaleString("fr-FR", {
     day: "numeric",
@@ -97,8 +179,10 @@ function formatDateShort(date: string): string {
 
 export default function BookingsTable({
   bookings,
+  studios,
 }: {
   bookings: BookingWithStudio[];
+  studios: Studio[];
 }) {
   const items = useMemo(() => groupBookingsForAdmin(bookings), [bookings]);
 
@@ -124,6 +208,7 @@ export default function BookingsTable({
               <th className="px-4 py-3.5">Date séance</th>
               <th className="px-4 py-3.5">Créée le</th>
               <th className="px-4 py-3.5">Client</th>
+              <th className="px-4 py-3.5">Activité</th>
               <th className="px-4 py-3.5">Prix</th>
               <th className="px-4 py-3.5">Paiement</th>
               <th className="px-4 py-3.5">Statut</th>
@@ -133,11 +218,16 @@ export default function BookingsTable({
           <tbody>
             {items.map((item) =>
               item.kind === "single" ? (
-                <BookingRow key={item.booking.id} booking={item.booking} />
+                <BookingRow
+                  key={item.booking.id}
+                  booking={item.booking}
+                  studios={studios}
+                />
               ) : (
                 <PackageRow
                   key={item.key}
                   bookings={item.bookings}
+                  studios={studios}
                 />
               )
             )}
@@ -148,7 +238,13 @@ export default function BookingsTable({
   );
 }
 
-function PackageRow({ bookings }: { bookings: BookingWithStudio[] }) {
+function PackageRow({
+  bookings,
+  studios,
+}: {
+  bookings: BookingWithStudio[];
+  studios: Studio[];
+}) {
   const [expanded, setExpanded] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { confirm, toast } = useAdminFeedback();
@@ -234,11 +330,9 @@ function PackageRow({ bookings }: { bookings: BookingWithStudio[] }) {
           <span className="block text-xs text-white/40 mt-0.5">
             {primary.customer_phone}
           </span>
-          {primary.activity_type && (
-            <span className="block text-xs text-sky-300/80 mt-1">
-              {primary.activity_type}
-            </span>
-          )}
+        </td>
+        <td className="px-4 py-3.5">
+          <ActivityCell booking={primary} />
         </td>
         <td className="px-4 py-3.5 font-display font-bold whitespace-nowrap text-teal-300">
           {formatMad(total)}
@@ -321,7 +415,7 @@ function PackageRow({ bookings }: { bookings: BookingWithStudio[] }) {
       </tr>
       {expanded && (
         <tr className="border-b border-white/[0.05] bg-white/[0.02]">
-          <td colSpan={10} className="px-4 py-4 sm:px-6">
+          <td colSpan={11} className="px-4 py-4 sm:px-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-white/35 mb-3">
               Séances du forfait
             </p>
@@ -346,6 +440,7 @@ function PackageRow({ bookings }: { bookings: BookingWithStudio[] }) {
                       key={booking.id}
                       booking={booking}
                       index={booking.package_index ?? index + 1}
+                      studios={studios}
                     />
                   ))}
                 </tbody>
@@ -359,6 +454,10 @@ function PackageRow({ bookings }: { bookings: BookingWithStudio[] }) {
                 {primary.customer_email}
               </a>
             </div>
+            <p className="mt-2 text-[11px] text-white/35">
+              Pour modifier une séance du forfait, utilisez « Modifier » sur la
+              ligne de la séance.
+            </p>
           </td>
         </tr>
       )}
@@ -369,10 +468,13 @@ function PackageRow({ bookings }: { bookings: BookingWithStudio[] }) {
 function PackageSessionRow({
   booking,
   index,
+  studios,
 }: {
   booking: BookingWithStudio;
   index: number;
+  studios: Studio[];
 }) {
+  const [editing, setEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { confirm, toast } = useAdminFeedback();
 
@@ -400,6 +502,7 @@ function PackageSessionRow({
   }
 
   return (
+    <>
     <tr className="border-b border-white/[0.04] last:border-0">
       <td className="px-3 py-2.5 text-white/40 tabular-nums">{index}</td>
       <td className="px-3 py-2.5 font-semibold text-white whitespace-nowrap">
@@ -464,36 +567,60 @@ function PackageSessionRow({
               )}
               {(booking.status === "pending" ||
                 booking.status === "confirmed") && (
-                <ActionButton
-                  label="×"
-                  tone="red"
-                  icon={<X className="w-3 h-3" />}
-                  onClick={async () => {
-                    const ok = await confirm({
-                      title: "Annuler cette séance ?",
-                      description: `Annuler uniquement ${booking.reference}.`,
-                      confirmLabel: "Annuler la séance",
-                      tone: "danger",
-                    });
-                    if (ok) {
-                      run(
-                        () => cancelBooking(booking.id),
-                        "Séance annulée"
-                      );
-                    }
-                  }}
-                />
+                <>
+                  <ActionButton
+                    label="Modif."
+                    tone="blue"
+                    icon={<Pencil className="w-3 h-3" />}
+                    onClick={() => setEditing(true)}
+                  />
+                  <ActionButton
+                    label="×"
+                    tone="red"
+                    icon={<X className="w-3 h-3" />}
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: "Annuler cette séance ?",
+                        description: `Annuler uniquement ${booking.reference}.`,
+                        confirmLabel: "Annuler la séance",
+                        tone: "danger",
+                      });
+                      if (ok) {
+                        run(
+                          () => cancelBooking(booking.id),
+                          "Séance annulée"
+                        );
+                      }
+                    }}
+                  />
+                </>
               )}
             </>
           )}
         </div>
       </td>
     </tr>
+      {editing && (
+        <EditBookingDialog
+          booking={booking}
+          studios={studios}
+          open={editing}
+          onClose={() => setEditing(false)}
+        />
+      )}
+    </>
   );
 }
 
-function BookingRow({ booking }: { booking: BookingWithStudio }) {
+function BookingRow({
+  booking,
+  studios,
+}: {
+  booking: BookingWithStudio;
+  studios: Studio[];
+}) {
   const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [note, setNote] = useState(booking.admin_note ?? "");
   const [isPending, startTransition] = useTransition();
   const { confirm, toast } = useAdminFeedback();
@@ -571,11 +698,9 @@ function BookingRow({ booking }: { booking: BookingWithStudio }) {
           <span className="block text-xs text-white/40 mt-0.5">
             {booking.customer_phone}
           </span>
-          {booking.activity_type && (
-            <span className="block text-xs text-sky-300/80 mt-1 truncate max-w-[12rem]" title={booking.activity_type}>
-              {booking.activity_type}
-            </span>
-          )}
+        </td>
+        <td className="px-4 py-3.5">
+          <ActivityCell booking={booking} />
         </td>
         <td className="px-4 py-3.5 font-display font-bold whitespace-nowrap text-teal-300">
           {formatMad(Number(booking.total_price_mad))}
@@ -651,25 +776,33 @@ function BookingRow({ booking }: { booking: BookingWithStudio }) {
                 )}
                 {(booking.status === "pending" ||
                   booking.status === "confirmed") && (
-                  <ActionButton
-                    label="Annuler"
-                    tone="red"
-                    icon={<X className="w-3.5 h-3.5" />}
-                    onClick={async () => {
-                      const ok = await confirm({
-                        title: "Annuler la réservation ?",
-                        description: `Annuler ${booking.reference}. Le client recevra un email d'annulation.`,
-                        confirmLabel: "Annuler la réservation",
-                        tone: "danger",
-                      });
-                      if (ok) {
-                        run(
-                          () => cancelBooking(booking.id),
-                          "Réservation annulée"
-                        );
-                      }
-                    }}
-                  />
+                  <>
+                    <ActionButton
+                      label="Modifier"
+                      tone="blue"
+                      icon={<Pencil className="w-3.5 h-3.5" />}
+                      onClick={() => setEditing(true)}
+                    />
+                    <ActionButton
+                      label="Annuler"
+                      tone="red"
+                      icon={<X className="w-3.5 h-3.5" />}
+                      onClick={async () => {
+                        const ok = await confirm({
+                          title: "Annuler la réservation ?",
+                          description: `Annuler ${booking.reference}. Le client recevra un email d'annulation.`,
+                          confirmLabel: "Annuler la réservation",
+                          tone: "danger",
+                        });
+                        if (ok) {
+                          run(
+                            () => cancelBooking(booking.id),
+                            "Réservation annulée"
+                          );
+                        }
+                      }}
+                    />
+                  </>
                 )}
               </>
             )}
@@ -685,31 +818,46 @@ function BookingRow({ booking }: { booking: BookingWithStudio }) {
       </tr>
       {expanded && (
         <tr className="border-b border-white/[0.05] bg-white/[0.02]">
-          <td colSpan={10} className="px-6 py-5">
+          <td colSpan={11} className="px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 text-sm">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="admin-btn min-h-8 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-sky-400/10 text-sky-300 border border-sky-400/25 hover:bg-sky-400/20"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Modifier la réservation
+                  </button>
+                </div>
                 <p>
                   <span className="text-white/40">Type :</span>{" "}
                   <span className="text-white/85 font-medium">
                     {COURSE_TYPE_LABELS[resolveCourseType(booking)]}
                   </span>
                 </p>
-                {booking.activity_type && (
-                  <p>
-                    <span className="text-white/40">Activité :</span>{" "}
-                    <span className="text-white/85 font-medium">
-                      {booking.activity_type}
-                    </span>
-                  </p>
-                )}
-                {booking.activity_description && (
-                  <p>
-                    <span className="text-white/40">Description :</span>{" "}
-                    <span className="text-white/85">
-                      {booking.activity_description}
-                    </span>
-                  </p>
-                )}
+                {(() => {
+                  const activity = resolveActivity(booking);
+                  if (!activity.type && !activity.description) return null;
+                  return (
+                  <div className="rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-3.5 py-3 space-y-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-200/70">
+                      Activité
+                    </p>
+                    {activity.type && (
+                      <p className="text-amber-100 font-semibold">
+                        {activity.type}
+                      </p>
+                    )}
+                    {activity.description && (
+                      <p className="text-white/75 leading-relaxed">
+                        {activity.description}
+                      </p>
+                    )}
+                  </div>
+                  );
+                })()}
                 {booking.is_internal && (
                   <p className="text-violet-300 text-sm font-medium">
                     Blocage interne — hors chiffre d&apos;affaires
@@ -761,6 +909,14 @@ function BookingRow({ booking }: { booking: BookingWithStudio }) {
             </div>
           </td>
         </tr>
+      )}
+      {editing && (
+        <EditBookingDialog
+          booking={booking}
+          studios={studios}
+          open={editing}
+          onClose={() => setEditing(false)}
+        />
       )}
     </>
   );
