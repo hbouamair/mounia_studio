@@ -722,6 +722,10 @@ export async function createManualBooking(
   }
 }
 
+export type RecurringMonths = 1 | 2 | 3 | 6;
+
+const RECURRING_MONTHS: RecurringMonths[] = [1, 2, 3, 6];
+
 export interface RecurringInternalBlockInput {
   studioId: number;
   /** First occurrence (YYYY-MM-DD) — defines the weekday. */
@@ -729,7 +733,7 @@ export interface RecurringInternalBlockInput {
   startMinutes: number;
   durationMinutes: number;
   /** How far ahead to block every week. */
-  months: 1 | 3 | 6;
+  months: RecurringMonths;
   name: string;
   note?: string;
 }
@@ -776,8 +780,8 @@ export async function createRecurringInternalBlocks(
     await requireAdmin();
     const supabase = getSupabaseAdmin();
 
-    if (![1, 3, 6].includes(input.months)) {
-      return { ok: false, error: "Durée invalide (1, 3 ou 6 mois)." };
+    if (!RECURRING_MONTHS.includes(input.months)) {
+      return { ok: false, error: "Durée invalide (1, 2, 3 ou 6 mois)." };
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(input.startDate)) {
       return { ok: false, error: "Date de début invalide." };
@@ -934,6 +938,242 @@ export async function createRecurringInternalBlocks(
 
     revalidateAdmin();
     const parts = [`${created} créneau${created > 1 ? "x" : ""} bloqué${created > 1 ? "s" : ""}`];
+    if (skippedBusy > 0) parts.push(`${skippedBusy} déjà pris`);
+    if (skippedClosed > 0) parts.push(`${skippedClosed} hors horaires`);
+    return {
+      ok: true,
+      message: parts.join(" · "),
+      created,
+      skippedClosed,
+      skippedBusy,
+      groupId,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
+  }
+}
+
+export interface RecurringManualBookingInput {
+  studioId: number;
+  startDate: string;
+  startMinutes: number;
+  durationMinutes: number;
+  months: RecurringMonths;
+  name: string;
+  email: string;
+  phone: string;
+  note?: string;
+  paymentMethod: PaymentMethod;
+  status: "pending" | "confirmed";
+  sendEmail: boolean;
+  /** Optional per-session price. If omitted, calculated per date. */
+  totalPriceMad?: number;
+}
+
+/**
+ * Creates weekly client bookings from a first date for 1 / 2 / 3 / 6 months.
+ */
+export async function createRecurringManualBookings(
+  input: RecurringManualBookingInput
+): Promise<
+  ActionResult & {
+    created?: number;
+    skippedClosed?: number;
+    skippedBusy?: number;
+    groupId?: string;
+  }
+> {
+  try {
+    await requireAdmin();
+    const supabase = getSupabaseAdmin();
+
+    if (!RECURRING_MONTHS.includes(input.months)) {
+      return { ok: false, error: "Durée invalide (1, 2, 3 ou 6 mois)." };
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(input.startDate)) {
+      return { ok: false, error: "Date de début invalide." };
+    }
+
+    const customerName = input.name.trim().slice(0, 100);
+    const customerEmail = input.email.trim().toLowerCase();
+    const customerPhone = input.phone.trim();
+    if (!customerName || !customerEmail || !customerPhone) {
+      return { ok: false, error: "Nom, email et téléphone sont requis." };
+    }
+
+    const { data: studioData } = await supabase
+      .from("studios")
+      .select("*")
+      .eq("id", input.studioId)
+      .single();
+    if (!studioData) return { ok: false, error: "Studio introuvable." };
+    const studio = studioData as Studio;
+    const settings = await fetchSettings(supabase);
+
+    const untilExclusive = addMonthsYmd(input.startDate, input.months);
+    const dates = enumerateWeeklyDates(input.startDate, untilExclusive);
+    if (dates.length === 0) {
+      return { ok: false, error: "Aucune date à réserver." };
+    }
+
+    const end = input.startMinutes + input.durationMinutes;
+    const groupId = crypto.randomUUID();
+    const note =
+      input.note?.trim() ||
+      `Réservation récurrente — chaque semaine × ${input.months} mois`;
+
+    const customPrice =
+      input.totalPriceMad != null &&
+      Number.isFinite(input.totalPriceMad) &&
+      input.totalPriceMad >= 0
+        ? Math.round(input.totalPriceMad * 100) / 100
+        : null;
+
+    await expireStalePendingBookings(supabase);
+
+    let created = 0;
+    let skippedClosed = 0;
+    let skippedBusy = 0;
+    let packageIndex = 0;
+    let firstBooking: Booking | null = null;
+
+    for (const date of dates) {
+      const opening = openingForDate(settings.opening_hours, date);
+      if (
+        !opening ||
+        input.startMinutes < opening.open ||
+        end > opening.close
+      ) {
+        skippedClosed += 1;
+        continue;
+      }
+
+      const busy = await fetchBusySlots(input.studioId, date, supabase);
+      if (
+        busy.some((b) =>
+          intervalsOverlap(
+            input.startMinutes,
+            end,
+            b.start_minutes,
+            b.start_minutes + b.duration_minutes
+          )
+        )
+      ) {
+        skippedBusy += 1;
+        continue;
+      }
+
+      const calculated = computeBookingPrice(
+        studio,
+        date,
+        input.startMinutes,
+        input.durationMinutes,
+        settings.peak_windows
+      );
+      const totalPriceMad = customPrice ?? calculated.totalMad;
+
+      const status = input.status;
+      const deadlineMs =
+        status === "confirmed"
+          ? bookingStartUtc(date, input.startMinutes).getTime()
+          : Math.min(
+              Date.now() + settings.confirmation_deadline_hours * 3_600_000,
+              bookingStartUtc(date, input.startMinutes).getTime()
+            );
+
+      packageIndex += 1;
+      const row: Record<string, unknown> = {
+        reference: generateBookingReference(),
+        studio_id: input.studioId,
+        date,
+        start_minutes: input.startMinutes,
+        duration_minutes: input.durationMinutes,
+        total_price_mad: totalPriceMad,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone: customerPhone,
+        note,
+        payment_method: input.paymentMethod,
+        status,
+        payment_deadline: new Date(deadlineMs).toISOString(),
+        admin_note: `Créée manuellement (récurrente) · ${input.months} mois`,
+        is_internal: false,
+        package_group_id: groupId,
+        package_index: packageIndex,
+        regular_course_count: dates.length,
+      };
+
+      let { data, error } = await supabase
+        .from("bookings")
+        .insert(row)
+        .select("*")
+        .single();
+
+      if (
+        error &&
+        (error.code === "42703" ||
+          error.message?.includes("is_internal") ||
+          error.message?.includes("package_group_id") ||
+          error.message?.includes("package_index") ||
+          error.message?.includes("regular_course_count"))
+      ) {
+        const legacy = { ...row };
+        delete legacy.is_internal;
+        if (
+          error.message?.includes("package_") ||
+          error.code === "42703"
+        ) {
+          // retry without optional columns that may be missing
+          delete legacy.package_group_id;
+          delete legacy.package_index;
+          delete legacy.regular_course_count;
+        }
+        ({ data, error } = await supabase
+          .from("bookings")
+          .insert(legacy)
+          .select("*")
+          .single());
+      }
+
+      if (error || !data) {
+        if (error?.code === "23P01") {
+          skippedBusy += 1;
+          packageIndex -= 1;
+          continue;
+        }
+        throw new Error(error?.message ?? "Insertion impossible");
+      }
+
+      created += 1;
+      if (!firstBooking) firstBooking = data as Booking;
+    }
+
+    if (created === 0) {
+      return {
+        ok: false,
+        error:
+          skippedBusy > 0
+            ? "Tous les créneaux étaient déjà réservés."
+            : "Aucune réservation créée (studio fermé ces jours-là ?).",
+        created: 0,
+        skippedClosed,
+        skippedBusy,
+      };
+    }
+
+    if (input.sendEmail && firstBooking) {
+      const ctx = { booking: firstBooking, studio, settings };
+      if (input.status === "confirmed") {
+        await sendBookingConfirmedEmail(ctx);
+      } else {
+        await sendBookingReceivedEmail(ctx);
+      }
+    }
+
+    revalidateAdmin();
+    const parts = [
+      `${created} réservation${created > 1 ? "s" : ""} créée${created > 1 ? "s" : ""}`,
+    ];
     if (skippedBusy > 0) parts.push(`${skippedBusy} déjà pris`);
     if (skippedClosed > 0) parts.push(`${skippedClosed} hors horaires`);
     return {

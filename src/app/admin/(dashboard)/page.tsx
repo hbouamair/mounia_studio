@@ -298,6 +298,7 @@ export default async function AdminBookingsPage({
         .select("*, studios(id, name)")
         .gte("date", weekStartStr)
         .lte("date", weekEndStr)
+        .in("status", ["pending", "confirmed", "completed"])
         .order("date", { ascending: true })
         .order("start_minutes", { ascending: true }),
       fetchAllForExport(supabase, listFilters),

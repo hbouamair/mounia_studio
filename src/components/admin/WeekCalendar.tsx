@@ -12,9 +12,13 @@ const STATUS_COLORS: Record<string, string> = {
   pending: "border-amber-400 bg-amber-400/10",
   confirmed: "border-teal-400 bg-teal-400/10",
   completed: "border-sky-400 bg-sky-400/10",
-  cancelled: "border-rose-400/60 bg-rose-400/[0.07] opacity-70",
-  expired: "border-white/20 bg-white/[0.04] opacity-70",
 };
+
+const ACTIVE_CALENDAR_STATUSES = new Set([
+  "pending",
+  "confirmed",
+  "completed",
+]);
 
 const INTERNAL_COLOR = "border-violet-400 bg-violet-400/15";
 
@@ -72,7 +76,10 @@ export default function WeekCalendar({
         {days.map((day) => {
           const dateStr = format(day, "yyyy-MM-dd");
           const dayBookings = bookings
-            .filter((b) => b.date === dateStr)
+            .filter(
+              (b) =>
+                b.date === dateStr && ACTIVE_CALENDAR_STATUSES.has(b.status)
+            )
             .sort((a, b) => a.start_minutes - b.start_minutes);
           const isToday = dateStr === todayStr;
 
@@ -138,10 +145,6 @@ export default function WeekCalendar({
         <LegendDot className="border-teal-400 bg-teal-400/15" label="Confirmée" />
         <LegendDot className="border-sky-400 bg-sky-400/15" label="Terminée" />
         <LegendDot className="border-violet-400 bg-violet-400/15" label="Interne" />
-        <LegendDot
-          className="border-rose-400/60 bg-rose-400/10"
-          label="Annulée / expirée"
-        />
       </div>
     </div>
   );
