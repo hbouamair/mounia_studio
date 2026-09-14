@@ -118,14 +118,6 @@ export function groupBookingsForAdmin(
   return items;
 }
 
-export function packageTotalMad(bookings: BookingWithStudio[]): number {
-  return (
-    Math.round(
-      bookings.reduce((sum, b) => sum + Number(b.total_price_mad), 0) * 100
-    ) / 100
-  );
-}
-
 /** Aggregate status for a package badge. */
 export function packageStatusSummary(
   bookings: BookingWithStudio[]
@@ -146,4 +138,41 @@ export function packageDateRangeLabel(bookings: BookingWithStudio[]): {
 } {
   const sorted = [...bookings].sort(sortPackageSessions);
   return { first: sorted[0], last: sorted[sorted.length - 1] };
+}
+
+/** Statuses that still count toward forfait revenue / displayed total. */
+const BILLABLE_PACKAGE_STATUSES: ReadonlySet<BookingStatus> = new Set([
+  "pending",
+  "confirmed",
+  "completed",
+]);
+
+export function isBillablePackageSession(
+  booking: Pick<Booking, "status">
+): boolean {
+  return BILLABLE_PACKAGE_STATUSES.has(booking.status);
+}
+
+/**
+ * Sum of session prices still owed / collected for the forfait.
+ * Cancelled and expired séances are excluded so cancelling one séance
+ * removes its share from the package total.
+ */
+export function packageTotalMad(bookings: BookingWithStudio[]): number {
+  return (
+    Math.round(
+      bookings
+        .filter(isBillablePackageSession)
+        .reduce((sum, b) => sum + Number(b.total_price_mad), 0) * 100
+    ) / 100
+  );
+}
+
+/** Original package face value including cancelled séances (audit). */
+export function packageGrossTotalMad(bookings: BookingWithStudio[]): number {
+  return (
+    Math.round(
+      bookings.reduce((sum, b) => sum + Number(b.total_price_mad), 0) * 100
+    ) / 100
+  );
 }

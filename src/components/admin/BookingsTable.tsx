@@ -27,7 +27,9 @@ import {
 import { PRIVATE_STUDIO_NAME } from "@/lib/booking/discounts";
 import {
   groupBookingsForAdmin,
+  isBillablePackageSession,
   packageDateRangeLabel,
+  packageGrossTotalMad,
   packageStatusSummary,
   packageTotalMad,
 } from "@/lib/booking/package-groups";
@@ -252,6 +254,9 @@ function PackageRow({
   const primary = bookings[0];
   const { first, last } = packageDateRangeLabel(bookings);
   const total = packageTotalMad(bookings);
+  const grossTotal = packageGrossTotalMad(bookings);
+  const activeSessions = bookings.filter(isBillablePackageSession);
+  const cancelledSessions = bookings.length - activeSessions.length;
   const status = packageStatusSummary(bookings);
   const ids = bookings.map((b) => b.id);
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
@@ -299,7 +304,8 @@ function PackageRow({
             Forfait
           </span>
           <span className="block text-[11px] text-white/40 mt-1">
-            {bookings.length} séances · {primary.reference}
+            {activeSessions.length}/{bookings.length} séances actives ·{" "}
+            {primary.reference}
             {bookings.length > 1 ? "…" : ""}
           </span>
         </td>
@@ -336,6 +342,11 @@ function PackageRow({
         </td>
         <td className="px-4 py-3.5 font-display font-bold whitespace-nowrap text-teal-300">
           {formatMad(total)}
+          {cancelledSessions > 0 && grossTotal > total && (
+            <span className="block text-[11px] font-sans font-normal text-white/35 line-through mt-0.5">
+              {formatMad(grossTotal)}
+            </span>
+          )}
         </td>
         <td className="px-4 py-3.5 whitespace-nowrap text-white/50">
           {PAYMENT_METHOD_LABELS[primary.payment_method]}
@@ -518,7 +529,13 @@ function PackageSessionRow({
         )}
       </td>
       <td className="px-3 py-2.5 text-teal-300/90 font-semibold whitespace-nowrap">
-        {formatMad(Number(booking.total_price_mad))}
+        {booking.status === "cancelled" || booking.status === "expired" ? (
+          <span className="text-white/35 line-through font-normal">
+            {formatMad(Number(booking.total_price_mad))}
+          </span>
+        ) : (
+          formatMad(Number(booking.total_price_mad))
+        )}
       </td>
       <td className="px-3 py-2.5 whitespace-nowrap">
         <span className={STATUS_BADGES[booking.status] ?? "admin-badge-neutral"}>
@@ -581,7 +598,7 @@ function PackageSessionRow({
                     onClick={async () => {
                       const ok = await confirm({
                         title: "Annuler cette séance ?",
-                        description: `Annuler uniquement ${booking.reference}.`,
+                        description: `Annuler uniquement ${booking.reference}. Son montant (${formatMad(Number(booking.total_price_mad))}) sera retiré du total du forfait.`,
                         confirmLabel: "Annuler la séance",
                         tone: "danger",
                       });
