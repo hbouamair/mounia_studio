@@ -23,7 +23,7 @@ const features = [
   {
     icon: Package,
     title: "FORMULES AVANTAGEUSES",
-    description: "Profitez de −20 % sur notre pack de 10 locations. Plus vous louez, plus vous économisez."
+    description: "Profitez de −20 % sur le pack 10 heures (10 créneaux d’1 heure)."
   },
   {
     icon: Users,

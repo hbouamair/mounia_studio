@@ -7,6 +7,7 @@ import {
   computeBookingPriceWithDiscounts,
   computeMultiSlotPackagePrice,
   isPrivateStudio,
+  PACK_SLOT_DURATION_MINUTES,
   REGULAR_COURSE_MIN_COUNT,
 } from "@/lib/booking/discounts";
 import {
@@ -111,11 +112,13 @@ function validate(
 
   let slots: SlotInput[] = [];
   if (Array.isArray(b.slots) && b.slots.length > 0) {
-    if (b.slots.length > 1 && b.slots.length !== REGULAR_COURSE_MIN_COUNT) {
-      return {
-        ok: false,
-        error: `Le pack comporte exactement ${REGULAR_COURSE_MIN_COUNT} séances.`,
-      };
+    if (b.slots.length > 1) {
+      if (b.slots.length !== REGULAR_COURSE_MIN_COUNT) {
+        return {
+          ok: false,
+          error: `Le pack 10 heures comporte exactement ${REGULAR_COURSE_MIN_COUNT} créneaux d’1 heure.`,
+        };
+      }
     }
     for (const slot of b.slots) {
       if (!isValidSlot(slot)) {
@@ -150,6 +153,20 @@ function validate(
   }
 
   const duration = b.durationMinutes as number;
+
+  // Pack 10 heures = exactly 10 × 1h (not 10 × 1h30 / 2h)
+  if (slots.length > 1) {
+    if (
+      slots.length !== REGULAR_COURSE_MIN_COUNT ||
+      duration !== PACK_SLOT_DURATION_MINUTES
+    ) {
+      return {
+        ok: false,
+        error:
+          "Le pack 10 heures est limité à 10 créneaux d’1 heure (10 h au total).",
+      };
+    }
+  }
   for (let i = 0; i < slots.length; i++) {
     for (let j = i + 1; j < slots.length; j++) {
       if (slots[i].date !== slots[j].date) continue;
@@ -500,6 +517,7 @@ export async function POST(request: NextRequest) {
           note: noteParts.length ? noteParts.join(" · ") : null,
           payment_method: input.paymentMethod,
           status: "pending",
+          payment_status: "unpaid",
           payment_deadline: new Date(deadlineMs).toISOString(),
         };
 
@@ -517,7 +535,8 @@ export async function POST(request: NextRequest) {
             error.message?.includes("package_index") ||
             error.message?.includes("activity_type") ||
             error.message?.includes("activity_description") ||
-            error.message?.includes("is_internal"))
+            error.message?.includes("is_internal") ||
+            error.message?.includes("payment_status"))
         ) {
           const legacyRow = { ...row } as Record<string, unknown>;
           delete legacyRow.package_group_id;
@@ -525,6 +544,7 @@ export async function POST(request: NextRequest) {
           delete legacyRow.activity_type;
           delete legacyRow.activity_description;
           delete legacyRow.is_internal;
+          delete legacyRow.payment_status;
           const activityBits = [
             input.activityType?.trim()
               ? `Activité: ${input.activityType.trim()}`

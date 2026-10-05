@@ -1,23 +1,14 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import {
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Flag,
-  Layers,
-  Loader2,
-  Pencil,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { Banknote, Check, ChevronDown, ChevronUp, Flag, Layers, Loader2, Pencil, Sparkles, X } from "lucide-react";
 import type { BookingWithStudio, CourseType, Studio } from "@/lib/booking/types";
 import {
   BOOKING_STATUS_LABELS,
   COURSE_TYPE_LABELS,
   COURSE_TYPE_SHORT_LABELS,
   PAYMENT_METHOD_LABELS,
+  resolvePaymentStatus,
 } from "@/lib/booking/types";
 import {
   formatDurationLabel,
@@ -30,6 +21,7 @@ import {
   isBillablePackageSession,
   packageDateRangeLabel,
   packageGrossTotalMad,
+  packagePaidTotalMad,
   packageStatusSummary,
   packageTotalMad,
 } from "@/lib/booking/package-groups";
@@ -39,6 +31,9 @@ import {
   completeBooking,
   confirmBooking,
   confirmPackageBookings,
+  markBookingPaid,
+  markBookingUnpaid,
+  markPackagePaid,
   resendBookingConfirmationEmail,
   saveAdminNote,
 } from "@/app/admin/actions";
@@ -52,6 +47,32 @@ const STATUS_BADGES: Record<string, string> = {
   cancelled: "admin-badge-cancelled",
   expired: "admin-badge-neutral",
 };
+
+function PaymentBadge({ booking }: { booking: BookingWithStudio }) {
+  if (booking.is_internal) return null;
+  // Hide payment state until the reservation itself is confirmed
+  if (!["confirmed", "completed"].includes(booking.status)) return null;
+  const paid = resolvePaymentStatus(booking) === "paid";
+  return (
+    <span
+      className={`mt-1 inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold tracking-wide ${
+        paid
+          ? "bg-teal-400/10 text-teal-300/90 border border-teal-400/20"
+          : "bg-white/[0.04] text-white/45 border border-white/10"
+      }`}
+    >
+      {paid ? "Payé" : "Non payé"}
+    </span>
+  );
+}
+
+function canMarkPaid(booking: BookingWithStudio): boolean {
+  return (
+    !booking.is_internal &&
+    ["confirmed", "completed"].includes(booking.status) &&
+    resolvePaymentStatus(booking) === "unpaid"
+  );
+}
 
 function resolveCourseType(booking: BookingWithStudio): CourseType {
   if (booking.course_type === "private" || booking.course_type === "group") {
@@ -254,6 +275,7 @@ function PackageRow({
   const primary = bookings[0];
   const { first, last } = packageDateRangeLabel(bookings);
   const total = packageTotalMad(bookings);
+  const paidTotal = packagePaidTotalMad(bookings);
   const grossTotal = packageGrossTotalMad(bookings);
   const activeSessions = bookings.filter(isBillablePackageSession);
   const cancelledSessions = bookings.length - activeSessions.length;
@@ -263,6 +285,7 @@ function PackageRow({
   const cancellableCount = bookings.filter((b) =>
     ["pending", "confirmed"].includes(b.status)
   ).length;
+  const unpaidCount = bookings.filter((b) => canMarkPaid(b)).length;
   const studioName =
     primary.studios?.name ?? `Studio ${primary.studio_id}`;
   const createdAt = bookings.reduce((latest, b) =>
@@ -341,7 +364,10 @@ function PackageRow({
           <ActivityCell booking={primary} />
         </td>
         <td className="px-4 py-3.5 font-display font-bold whitespace-nowrap text-teal-300">
-          {formatMad(total)}
+          <span className="block">{formatMad(total)}</span>
+          <span className="block text-[11px] font-sans font-normal text-white/45 mt-0.5">
+            Encaissé : {formatMad(paidTotal)}
+          </span>
           {cancelledSessions > 0 && grossTotal > total && (
             <span className="block text-[11px] font-sans font-normal text-white/35 line-through mt-0.5">
               {formatMad(grossTotal)}
@@ -359,6 +385,18 @@ function PackageRow({
             <span className="block text-[11px] text-amber-300/80 mt-1">
               {pendingCount} en attente
             </span>
+          )}
+          {unpaidCount > 0 ? (
+            <span className="mt-1 block text-[11px] text-white/40">
+              {unpaidCount} non payée{unpaidCount > 1 ? "s" : ""}
+            </span>
+          ) : (
+            status !== "pending" &&
+            !primary.is_internal && (
+              <span className="mt-1 block text-[11px] text-teal-300/70">
+                Payé
+              </span>
+            )
           )}
         </td>
         <td className="px-4 py-3.5">
@@ -378,7 +416,7 @@ function PackageRow({
                     onClick={async () => {
                       const ok = await confirm({
                         title: "Confirmer le forfait ?",
-                        description: `Confirmer les ${pendingCount} séance(s) en attente. Un seul email sera envoyé à ${primary.customer_email}.`,
+                        description: `Confirmer les ${pendingCount} séance(s) en attente (créneaux réservés). Le paiement se marque ensuite, une fois confirmé.`,
                         confirmLabel: "Confirmer le forfait",
                         tone: "primary",
                       });
@@ -387,6 +425,24 @@ function PackageRow({
                           () => confirmPackageBookings(ids),
                           "Forfait confirmé"
                         );
+                      }
+                    }}
+                  />
+                )}
+                {unpaidCount > 0 && (
+                  <ActionButton
+                    label="Paiement reçu"
+                    tone="amber"
+                    icon={<Banknote className="w-3.5 h-3.5" />}
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: "Enregistrer le paiement ?",
+                        description: `Marquer ${unpaidCount} séance(s) comme payée(s). Le montant entrera dans le CA.`,
+                        confirmLabel: "Enregistrer le paiement",
+                        tone: "primary",
+                      });
+                      if (ok) {
+                        run(() => markPackagePaid(ids), "Paiement enregistré");
                       }
                     }}
                   />
@@ -427,6 +483,39 @@ function PackageRow({
       {expanded && (
         <tr className="border-b border-white/[0.05] bg-white/[0.02]">
           <td colSpan={11} className="px-4 py-4 sm:px-6">
+            {unpaidCount > 0 && (
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-white/90">
+                    Paiement du forfait
+                  </p>
+                  <p className="text-xs text-white/45 mt-0.5">
+                    {unpaidCount} séance(s) confirmée(s) encore non payée(s) · dû{" "}
+                    {formatMad(total - paidTotal)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const ok = await confirm({
+                      title: "Enregistrer le paiement ?",
+                      description: `Marquer ${unpaidCount} séance(s) comme payée(s). Le montant entrera alors dans le CA.`,
+                      confirmLabel: "Enregistrer le paiement",
+                      tone: "primary",
+                    });
+                    if (ok) {
+                      run(() => markPackagePaid(ids), "Paiement enregistré");
+                    }
+                  }}
+                  className="admin-btn min-h-10 px-4 rounded-xl text-xs font-bold bg-amber-400/15 text-amber-100 border border-amber-400/30 hover:bg-amber-400/25"
+                >
+                  <Banknote className="w-3.5 h-3.5" aria-hidden />
+                  Enregistrer le paiement
+                </button>
+              </div>
+            )}
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-white/35 mb-3">
               Séances du forfait
             </p>
@@ -541,6 +630,9 @@ function PackageSessionRow({
         <span className={STATUS_BADGES[booking.status] ?? "admin-badge-neutral"}>
           {BOOKING_STATUS_LABELS[booking.status]}
         </span>
+        <div className="mt-1">
+          <PaymentBadge booking={booking} />
+        </div>
       </td>
       <td className="px-3 py-2.5">
         <div className="flex items-center justify-end gap-1">
@@ -556,7 +648,7 @@ function PackageSessionRow({
                   onClick={async () => {
                     const ok = await confirm({
                       title: "Confirmer cette séance ?",
-                      description: `Confirmer uniquement ${booking.reference}. Le client recevra un email.`,
+                      description: `Confirmer uniquement ${booking.reference} (créneau réservé). Le paiement se marque ensuite.`,
                       confirmLabel: "Confirmer",
                       tone: "primary",
                     });
@@ -565,6 +657,24 @@ function PackageSessionRow({
                         () => confirmBooking(booking.id),
                         "Séance confirmée"
                       );
+                    }
+                  }}
+                />
+              )}
+              {canMarkPaid(booking) && (
+                <ActionButton
+                  label="Paiement"
+                  tone="amber"
+                  icon={<Banknote className="w-3 h-3" />}
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: "Enregistrer le paiement ?",
+                      description: `Paiement de ${booking.reference} (${formatMad(Number(booking.total_price_mad))}) — entre dans le CA.`,
+                      confirmLabel: "Enregistrer",
+                      tone: "primary",
+                    });
+                    if (ok) {
+                      run(() => markBookingPaid(booking.id), "Paiement enregistré");
                     }
                   }}
                 />
@@ -721,6 +831,14 @@ function BookingRow({
         </td>
         <td className="px-4 py-3.5 font-display font-bold whitespace-nowrap text-teal-300">
           {formatMad(Number(booking.total_price_mad))}
+          {!booking.is_internal &&
+            ["confirmed", "completed"].includes(booking.status) && (
+            <span className="block text-[11px] font-sans font-normal text-white/40 mt-0.5">
+              {resolvePaymentStatus(booking) === "paid"
+                ? "Encaissé (CA)"
+                : "Hors CA"}
+            </span>
+          )}
         </td>
         <td className="px-4 py-3.5 whitespace-nowrap text-white/50">
           {PAYMENT_METHOD_LABELS[booking.payment_method]}
@@ -729,6 +847,9 @@ function BookingRow({
           <span className={STATUS_BADGES[booking.status] ?? "admin-badge-neutral"}>
             {BOOKING_STATUS_LABELS[booking.status]}
           </span>
+          <div className="mt-1">
+            <PaymentBadge booking={booking} />
+          </div>
           {booking.status === "pending" && (
             <span className="block text-[11px] text-white/40 mt-1.5">
               Limite : {deadline}
@@ -752,7 +873,7 @@ function BookingRow({
                     onClick={async () => {
                       const ok = await confirm({
                         title: "Confirmer la réservation ?",
-                        description: `Confirmer ${booking.reference}. Le client recevra un email à ${booking.customer_email}.`,
+                        description: `Confirmer ${booking.reference} (créneau réservé). Ensuite seulement, vous pourrez enregistrer le paiement.`,
                         confirmLabel: "Confirmer",
                         tone: "primary",
                       });
@@ -760,6 +881,27 @@ function BookingRow({
                         run(
                           () => confirmBooking(booking.id),
                           "Réservation confirmée"
+                        );
+                      }
+                    }}
+                  />
+                )}
+                {canMarkPaid(booking) && (
+                  <ActionButton
+                    label="Paiement reçu"
+                    tone="amber"
+                    icon={<Banknote className="w-3.5 h-3.5" />}
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: "Enregistrer le paiement ?",
+                        description: `Confirmer la réception de ${formatMad(Number(booking.total_price_mad))} pour ${booking.reference}. Le montant entrera dans le CA.`,
+                        confirmLabel: "Enregistrer le paiement",
+                        tone: "primary",
+                      });
+                      if (ok) {
+                        run(
+                          () => markBookingPaid(booking.id),
+                          "Paiement enregistré"
                         );
                       }
                     }}
@@ -836,6 +978,71 @@ function BookingRow({
       {expanded && (
         <tr className="border-b border-white/[0.05] bg-white/[0.02]">
           <td colSpan={11} className="px-6 py-5">
+            {canMarkPaid(booking) && (
+              <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3.5">
+                <div>
+                  <p className="text-sm font-semibold text-white/90">
+                    Paiement
+                  </p>
+                  <p className="text-xs text-white/45 mt-0.5 leading-relaxed">
+                    Réservation confirmée · {formatMad(Number(booking.total_price_mad))}{" "}
+                    encore hors CA jusqu&apos;à encaissement.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: "Enregistrer le paiement ?",
+                      description: `Confirmer la réception de ${formatMad(Number(booking.total_price_mad))} pour ${booking.reference}.`,
+                      confirmLabel: "Enregistrer le paiement",
+                      tone: "primary",
+                    });
+                    if (ok) {
+                      run(
+                        () => markBookingPaid(booking.id),
+                        "Paiement enregistré"
+                      );
+                    }
+                  }}
+                  className="admin-btn min-h-10 px-4 rounded-xl text-xs font-bold bg-amber-400/15 text-amber-100 border border-amber-400/30 hover:bg-amber-400/25 shrink-0"
+                >
+                  <Banknote className="w-3.5 h-3.5" aria-hidden />
+                  Enregistrer le paiement
+                </button>
+              </div>
+            )}
+            {["confirmed", "completed"].includes(booking.status) &&
+              resolvePaymentStatus(booking) === "paid" &&
+              !booking.is_internal && (
+                <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-teal-400/20 bg-teal-400/[0.06] px-4 py-3">
+                  <p className="text-sm text-teal-100/90">
+                    Paiement enregistré · compté dans le CA
+                  </p>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: "Remettre en non payé ?",
+                        description: `Corriger ${booking.reference} : retirer du CA.`,
+                        confirmLabel: "Marquer non payé",
+                        tone: "danger",
+                      });
+                      if (ok) {
+                        run(
+                          () => markBookingUnpaid(booking.id),
+                          "Paiement corrigé"
+                        );
+                      }
+                    }}
+                    className="text-[11px] font-semibold text-white/40 hover:text-white/70 underline-offset-2 hover:underline"
+                  >
+                    Annuler le paiement
+                  </button>
+                </div>
+              )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 text-sm">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -946,7 +1153,7 @@ function ActionButton({
   onClick,
 }: {
   label: string;
-  tone: "green" | "red" | "blue";
+  tone: "green" | "red" | "blue" | "amber";
   icon: React.ReactNode;
   onClick: () => void;
 }) {
@@ -955,6 +1162,8 @@ function ActionButton({
       "bg-teal-400/15 text-teal-300 border border-teal-400/30 hover:bg-teal-400/25",
     red: "bg-rose-400/10 text-rose-300 border border-rose-400/25 hover:bg-rose-400/20",
     blue: "bg-sky-400/10 text-sky-300 border border-sky-400/25 hover:bg-sky-400/20",
+    amber:
+      "bg-amber-400/15 text-amber-100 border border-amber-400/30 hover:bg-amber-400/25",
   };
   return (
     <button

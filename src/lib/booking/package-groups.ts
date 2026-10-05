@@ -154,15 +154,30 @@ export function isBillablePackageSession(
 }
 
 /**
- * Sum of session prices still owed / collected for the forfait.
- * Cancelled and expired séances are excluded so cancelling one séance
- * removes its share from the package total.
+ * Sum of session prices still owed for the forfait (excludes cancelled/expired).
+ * This is the amount due — not yet revenue until payment_status = paid.
  */
 export function packageTotalMad(bookings: BookingWithStudio[]): number {
   return (
     Math.round(
       bookings
         .filter(isBillablePackageSession)
+        .reduce((sum, b) => sum + Number(b.total_price_mad), 0) * 100
+    ) / 100
+  );
+}
+
+/** Amount actually collected (payment marked paid only). */
+export function packagePaidTotalMad(bookings: BookingWithStudio[]): number {
+  return (
+    Math.round(
+      bookings
+        .filter(
+          (b) =>
+            isBillablePackageSession(b) &&
+            !b.is_internal &&
+            b.payment_status === "paid"
+        )
         .reduce((sum, b) => sum + Number(b.total_price_mad), 0) * 100
     ) / 100
   );

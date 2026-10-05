@@ -20,7 +20,7 @@ const studios = [
       "Système son Bluetooth",
       "Climatisation",
       "Grand miroirs",
-      "Pack 10 locations −20 %"
+      "Pack 10 heures — 20 % d'économie"
     ],
     popular: true,
     color: "from-primary-500 to-primary-600"
@@ -38,7 +38,7 @@ const studios = [
       "Système son Bluetooth",
       "Climatisation",
       "Grand miroirs",
-      "Pack 10 locations −20 %"
+      "Pack 10 heures — 20 % d'économie"
     ],
     popular: false,
     color: "from-secondary-500 to-secondary-600"
@@ -56,7 +56,7 @@ const studios = [
       "Système son Bluetooth",
       "Climatisation",
       "Grand miroirs",
-      "Pack 10 locations −20 %"
+      "Pack 10 heures — 20 % d'économie"
     ],
     popular: false,
     color: "from-accent-500 to-accent-600"

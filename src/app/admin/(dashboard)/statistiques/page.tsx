@@ -80,9 +80,9 @@ export default async function AdminStatisticsPage() {
         .in("status", ["pending", "confirmed", "completed"]),
       supabase
         .from("bookings")
-        .select("total_price_mad, is_internal")
+        .select("total_price_mad, is_internal, payment_status, status")
         .gte("date", today)
-        .eq("status", "confirmed"),
+        .in("status", ["confirmed", "completed", "pending"]),
     ]);
 
     const statsBookings = statsBookingsData ?? [];
@@ -129,9 +129,14 @@ export default async function AdminStatisticsPage() {
       (upcomingData ?? []) as Array<{
         total_price_mad: number;
         is_internal?: boolean | null;
+        payment_status?: string | null;
+        status?: string;
       }>
     )
-      .filter((b) => !b.is_internal)
+      .filter((b) => {
+        if (b.is_internal) return false;
+        return b.payment_status === "paid";
+      })
       .reduce((sum, b) => sum + Number(b.total_price_mad), 0);
 
     return (

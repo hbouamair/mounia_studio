@@ -6,10 +6,35 @@ import type { PeakWindow } from "./types";
 export const PRIVATE_STUDIO_NAME = "Studio 3";
 
 export const PRIVATE_COURSE_DISCOUNT_PERCENT = 50;
-/** Minimum courses in a package (pack 10). */
+
+/**
+ * Pack booking still collects this many créneaux in the wizard.
+ * Each créneau is fixed to PACK_SLOT_DURATION_MINUTES so the pack is exactly
+ * PACK_HOURS_TRANCHE hours (not 10 × 1h30 / 2h).
+ */
 export const REGULAR_COURSE_MIN_COUNT = 10;
-/** Flat discount applied to pack-10 bookings. */
+
+/** Hours per discounted tranche (−20 % on each complete tranche). */
+export const PACK_HOURS_TRANCHE = 10;
+
+/** Fixed duration of each créneau in the pack 10 heures (1 hour). */
+export const PACK_SLOT_DURATION_MINUTES = 60;
+
+/** Flat discount applied on each complete 10-hour tranche. */
 export const PACK_DISCOUNT_PERCENT = 20;
+
+/** Exact total hours for a valid pack booking. */
+export function packTotalHoursRequired(): number {
+  return PACK_HOURS_TRANCHE;
+}
+
+export function isValidPackDurationMinutes(durationMinutes: number): boolean {
+  return durationMinutes === PACK_SLOT_DURATION_MINUTES;
+}
+
+export function isValidPackSlotCount(slotCount: number): boolean {
+  return slotCount === REGULAR_COURSE_MIN_COUNT;
+}
 
 export function isPrivateStudio(studio: Pick<Studio, "name">): boolean {
   return studio.name === PRIVATE_STUDIO_NAME;
@@ -57,8 +82,56 @@ export function isPackCourseCount(courseCount: number): boolean {
   return courseCount >= REGULAR_COURSE_MIN_COUNT;
 }
 
+export function totalPackHours(
+  slotCount: number,
+  durationMinutes: number
+): number {
+  return Math.round(((slotCount * durationMinutes) / 60) * 100) / 100;
+}
+
+/** Complete 10-hour tranches that qualify for −20 %. */
+export function discountedPackHours(totalHours: number): number {
+  if (totalHours <= 0) return 0;
+  return Math.floor(totalHours / PACK_HOURS_TRANCHE) * PACK_HOURS_TRANCHE;
+}
+
 export function packDiscountMad(subtotalMad: number): number {
   return Math.round(subtotalMad * (PACK_DISCOUNT_PERCENT / 100) * 100) / 100;
+}
+
+/**
+ * −20 % only on the share of value covered by complete 10-hour tranches.
+ * Remaining hours stay at full rate.
+ */
+export function packTrancheDiscountMad(
+  subtotalMad: number,
+  totalHours: number
+): number {
+  const discountedHours = discountedPackHours(totalHours);
+  if (discountedHours <= 0 || totalHours <= 0 || subtotalMad <= 0) return 0;
+  const discountedShare = Math.min(1, discountedHours / totalHours);
+  return (
+    Math.round(
+      subtotalMad * discountedShare * (PACK_DISCOUNT_PERCENT / 100) * 100
+    ) / 100
+  );
+}
+
+export function packHoursOfferTitle(): string {
+  return `Pack ${PACK_HOURS_TRANCHE} heures — ${PACK_DISCOUNT_PERCENT} % d'économie`;
+}
+
+export function packHoursOfferDescription(): string {
+  return `Bénéficiez de −${PACK_DISCOUNT_PERCENT} % sur ${PACK_HOURS_TRANCHE} heures réservées (${REGULAR_COURSE_MIN_COUNT} créneaux d’1 heure).`;
+}
+
+export function packHoursOfferConditions(): string {
+  return `La remise de ${PACK_DISCOUNT_PERCENT} % s'applique sur une tranche cumulée de ${PACK_HOURS_TRANCHE} heures. Le pack comprend exactement ${REGULAR_COURSE_MIN_COUNT} créneaux d’1 heure (pas de créneaux de 1h30 ou 2h).`;
+}
+
+/** @deprecated Prefer packHoursOfferTitle() */
+export function regularCourseOfferLabel(): string {
+  return packHoursOfferTitle();
 }
 
 export interface BookingDiscountBreakdown {
@@ -72,9 +145,12 @@ export interface BookingDiscountBreakdown {
   courseTypeDiscountMad: number;
   /** Always 0 — kept for UI/API compatibility. */
   freeCoursesIncluded: number;
-  /** Pack −20% amount (or 0 for single bookings). */
+  /** Pack −20% on complete 10h tranches (or 0 for single bookings). */
   regularCourseDiscountMad: number;
   totalBeforePromoMad: number;
+  totalHours: number;
+  discountedHours: number;
+  fullPriceHours: number;
 }
 
 export function computeBookingPriceWithDiscounts(options: {
@@ -117,10 +193,21 @@ export function computeBookingPriceWithDiscounts(options: {
   const packageSubtotalMad =
     Math.round(sessionPriceMad * packageCourseCount * 100) / 100;
 
+  const totalHours = totalPackHours(
+    packageCourseCount,
+    options.durationMinutes
+  );
+  const discountedHours =
+    hasPackage && isPackCourseCount(packageCourseCount)
+      ? discountedPackHours(totalHours)
+      : 0;
+  const fullPriceHours =
+    Math.round((totalHours - discountedHours) * 100) / 100;
+
   const freeCoursesIncluded = 0;
   const regularCourseDiscountMad =
     hasPackage && isPackCourseCount(packageCourseCount)
-      ? packDiscountMad(packageSubtotalMad)
+      ? packTrancheDiscountMad(packageSubtotalMad, totalHours)
       : 0;
 
   const totalBeforePromoMad = Math.max(
@@ -139,21 +226,19 @@ export function computeBookingPriceWithDiscounts(options: {
     freeCoursesIncluded,
     regularCourseDiscountMad,
     totalBeforePromoMad,
+    totalHours,
+    discountedHours,
+    fullPriceHours,
   };
-}
-
-/** Short label for the pack-10 offer (UI). */
-export function regularCourseOfferLabel(): string {
-  return `Pack ${REGULAR_COURSE_MIN_COUNT} locations : −${PACK_DISCOUNT_PERCENT} %`;
 }
 
 /** One-line package summary for receipts and confirmation. */
 export function formatPackageSummary(b: BookingDiscountBreakdown): string | null {
   if (b.packageCourseCount <= 1) return null;
   if (b.regularCourseDiscountMad > 0) {
-    return `${b.packageCourseCount} locations · −${PACK_DISCOUNT_PERCENT} % · ${formatMad(b.totalBeforePromoMad)}`;
+    return `${b.totalHours} h · −${PACK_DISCOUNT_PERCENT} % sur ${b.discountedHours} h · ${formatMad(b.totalBeforePromoMad)}`;
   }
-  return `${b.packageCourseCount} cours × ${formatMad(b.sessionPriceMad)} = ${formatMad(b.packageSubtotalMad)}`;
+  return `${b.packageCourseCount} créneaux × ${formatMad(b.sessionPriceMad)} = ${formatMad(b.packageSubtotalMad)}`;
 }
 
 export interface BookingSlotInput {
@@ -166,6 +251,8 @@ export interface SlotQuote {
   startMinutes: number;
   sessionPriceMad: number;
   chargedPriceMad: number;
+  /** Minutes of this slot covered by a discounted 10h tranche. */
+  discountedMinutes: number;
   /** Always false with % pack discount — kept for compatibility. */
   isFree: boolean;
   courseTypeDiscountMad: number;
@@ -179,11 +266,15 @@ export interface MultiSlotPackageBreakdown {
   regularCourseDiscountMad: number;
   courseTypeDiscountMad: number;
   totalBeforePromoMad: number;
+  totalHours: number;
+  discountedHours: number;
+  fullPriceHours: number;
 }
 
 /**
  * Price N distinct slots as a package.
- * Pack of 10+ applies a flat −20% on the package subtotal.
+ * −20 % applies only to complete cumulative 10-hour tranches;
+ * leftover hours are billed at the regular rate.
  */
 export function computeMultiSlotPackagePrice(options: {
   studio: Studio;
@@ -195,9 +286,13 @@ export function computeMultiSlotPackagePrice(options: {
   const { studio, courseType, slots, durationMinutes, peakWindows } = options;
   const packageCourseCount = slots.length;
   const applyPackDiscount = isPackCourseCount(packageCourseCount);
-  const chargeFactor = applyPackDiscount
-    ? 1 - PACK_DISCOUNT_PERCENT / 100
-    : 1;
+  const totalHours = totalPackHours(packageCourseCount, durationMinutes);
+  const discountedHours = applyPackDiscount
+    ? discountedPackHours(totalHours)
+    : 0;
+  const fullPriceHours =
+    Math.round((totalHours - discountedHours) * 100) / 100;
+  let remainingDiscountedMinutes = discountedHours * 60;
 
   const slotQuotes: SlotQuote[] = slots.map((slot) => {
     const single = computeBookingPriceWithDiscounts({
@@ -210,14 +305,28 @@ export function computeMultiSlotPackagePrice(options: {
       regularCourseCount: 1,
     });
     const sessionPriceMad = single.sessionPriceMad;
+    const discountedMinutes = applyPackDiscount
+      ? Math.min(durationMinutes, remainingDiscountedMinutes)
+      : 0;
+    remainingDiscountedMinutes -= discountedMinutes;
+    const fullMinutes = durationMinutes - discountedMinutes;
+    const discShare = durationMinutes > 0 ? discountedMinutes / durationMinutes : 0;
+    const fullShare = durationMinutes > 0 ? fullMinutes / durationMinutes : 0;
+    const chargedPriceMad =
+      Math.round(
+        (sessionPriceMad * discShare * (1 - PACK_DISCOUNT_PERCENT / 100) +
+          sessionPriceMad * fullShare) *
+          100
+      ) / 100;
+
     return {
       date: slot.date,
       startMinutes: slot.startMinutes,
       sessionPriceMad,
       courseTypeDiscountMad: single.courseTypeDiscountMad,
       isFree: false,
-      chargedPriceMad:
-        Math.round(sessionPriceMad * chargeFactor * 100) / 100,
+      discountedMinutes,
+      chargedPriceMad,
     };
   });
 
@@ -225,15 +334,17 @@ export function computeMultiSlotPackagePrice(options: {
     Math.round(
       slotQuotes.reduce((sum, s) => sum + s.sessionPriceMad, 0) * 100
     ) / 100;
-  const regularCourseDiscountMad = applyPackDiscount
-    ? packDiscountMad(packageSubtotalMad)
-    : 0;
+  const chargedTotalMad =
+    Math.round(
+      slotQuotes.reduce((sum, s) => sum + s.chargedPriceMad, 0) * 100
+    ) / 100;
+  const regularCourseDiscountMad =
+    Math.round((packageSubtotalMad - chargedTotalMad) * 100) / 100;
   const courseTypeDiscountMad =
     Math.round(
       slotQuotes.reduce((sum, s) => sum + s.courseTypeDiscountMad, 0) * 100
     ) / 100;
-  const totalBeforePromoMad =
-    Math.round((packageSubtotalMad - regularCourseDiscountMad) * 100) / 100;
+  const totalBeforePromoMad = chargedTotalMad;
 
   return {
     slots: slotQuotes,
@@ -243,6 +354,9 @@ export function computeMultiSlotPackagePrice(options: {
     regularCourseDiscountMad,
     courseTypeDiscountMad,
     totalBeforePromoMad,
+    totalHours,
+    discountedHours,
+    fullPriceHours,
   };
 }
 

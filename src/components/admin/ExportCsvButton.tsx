@@ -66,7 +66,13 @@ function buildDailyStats(
       ) {
         bookedMinutes += b.duration_minutes;
       }
-      if (b.status === "confirmed" || b.status === "completed") {
+      if (
+        (b.status === "confirmed" ||
+          b.status === "completed" ||
+          b.status === "pending") &&
+        b.payment_status === "paid" &&
+        !b.is_internal
+      ) {
         revenueMad += Number(b.total_price_mad);
       }
     }

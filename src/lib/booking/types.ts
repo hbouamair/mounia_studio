@@ -89,6 +89,9 @@ export type BookingStatus =
   | "expired"
   | "completed";
 
+/** Independent from booking status — payment may arrive after the session. */
+export type PaymentStatus = "unpaid" | "paid";
+
 export interface Booking {
   id: string;
   reference: string;
@@ -116,6 +119,8 @@ export interface Booking {
   note: string | null;
   payment_method: PaymentMethod;
   status: BookingStatus;
+  /** unpaid until admin marks payment received (can be after the séance). */
+  payment_status?: PaymentStatus | null;
   payment_deadline: string; // ISO timestamp
   admin_note: string | null;
   client_reminder_sent_at: string | null;
@@ -135,9 +140,23 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
 };
 
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
-  pending: "En attente de paiement",
+  pending: "À confirmer",
   confirmed: "Confirmée",
   cancelled: "Annulée",
   expired: "Expirée",
   completed: "Terminée",
 };
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  unpaid: "Non payé",
+  paid: "Payé",
+};
+
+/** Paid only when explicitly marked — never inferred from booking status. */
+export function resolvePaymentStatus(
+  booking: Pick<Booking, "payment_status" | "status" | "is_internal">
+): PaymentStatus {
+  if (booking.is_internal) return "paid";
+  if (booking.payment_status === "paid") return "paid";
+  return "unpaid";
+}

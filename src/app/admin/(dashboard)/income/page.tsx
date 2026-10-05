@@ -22,6 +22,7 @@ interface RevenueRow {
   customer_name: string;
   customer_email: string;
   is_internal?: boolean | null;
+  payment_status?: string | null;
 }
 
 export default async function AdminIncomePage() {
@@ -31,17 +32,19 @@ export default async function AdminIncomePage() {
 
     let rows: RevenueRow[] = [];
     {
-      const withInternal = await supabase
+      const withPayment = await supabase
         .from("bookings")
         .select(
-          "date, total_price_mad, studio_id, status, customer_name, customer_email, is_internal"
+          "date, total_price_mad, studio_id, status, customer_name, customer_email, is_internal, payment_status"
         )
-        .in("status", ["confirmed", "completed"])
+        .in("status", ["confirmed", "completed", "pending"])
         .limit(10000);
+
       if (
-        withInternal.error &&
-        (withInternal.error.code === "42703" ||
-          withInternal.error.message?.includes("is_internal"))
+        withPayment.error &&
+        (withPayment.error.code === "42703" ||
+          withPayment.error.message?.includes("payment_status") ||
+          withPayment.error.message?.includes("is_internal"))
       ) {
         const legacy = await supabase
           .from("bookings")
@@ -58,9 +61,12 @@ export default async function AdminIncomePage() {
             Number(r.total_price_mad) > 0
         );
       } else {
-        rows = ((withInternal.data ?? []) as RevenueRow[]).filter(
-          (r) => !r.is_internal
-        );
+        rows = ((withPayment.data ?? []) as RevenueRow[]).filter((r) => {
+          if (r.is_internal) return false;
+          if (Number(r.total_price_mad) <= 0) return false;
+          // CA only after admin marks payment received
+          return r.payment_status === "paid";
+        });
       }
     }
 

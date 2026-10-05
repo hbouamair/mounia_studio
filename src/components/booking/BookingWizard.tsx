@@ -53,9 +53,13 @@ import {
   filterStudiosForCourseType,
   getEffectiveStudioPrices,
   PACK_DISCOUNT_PERCENT,
+  PACK_HOURS_TRANCHE,
+  PACK_SLOT_DURATION_MINUTES,
+  packHoursOfferConditions,
+  packHoursOfferDescription,
+  packHoursOfferTitle,
   PRIVATE_COURSE_DISCOUNT_PERCENT,
   REGULAR_COURSE_MIN_COUNT,
-  regularCourseOfferLabel,
   type BookingSlotInput,
   type MultiSlotPackageBreakdown,
 } from "@/lib/booking/discounts";
@@ -186,6 +190,13 @@ export default function BookingWizard({ studios, settings }: Props) {
     const top = el.getBoundingClientRect().top + window.scrollY - navOffset;
     window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   }, [step]);
+
+  useEffect(() => {
+    if (isPack10 && duration !== PACK_SLOT_DURATION_MINUTES) {
+      setDuration(PACK_SLOT_DURATION_MINUTES);
+      setStartMinutes(null);
+    }
+  }, [isPack10, duration]);
 
   const loadAvailability = useCallback(
     async (studioId: number, date: string) => {
@@ -368,12 +379,9 @@ export default function BookingWizard({ studios, settings }: Props) {
   }
 
   function handleDurationChange(next: number) {
+    if (isPack10) return; // pack = fixed 1h × 10
     setDuration(next);
     setStartMinutes(null);
-    if (isPack10) {
-      setConfirmedSlots([]);
-      setAppliedPromo(null);
-    }
   }
 
   function selectStartTime(m: number) {
@@ -538,6 +546,9 @@ export default function BookingWizard({ studios, settings }: Props) {
               mode={sessionMode}
               onSelect={(mode) => {
                 setSessionMode(mode);
+                if (mode === "pack10") {
+                  setDuration(PACK_SLOT_DURATION_MINUTES);
+                }
                 resetSchedule();
                 setStep(2);
               }}
@@ -573,7 +584,7 @@ export default function BookingWizard({ studios, settings }: Props) {
                 </span>
                 <span className="book-badge">
                   <Calendar className="w-3.5 h-3.5 text-secondary-500" aria-hidden />
-                  {isPack10 ? `Pack ${PACK_SESSION_COUNT} locations` : "1 location"}
+                  {isPack10 ? packHoursOfferTitle() : "1 location"}
                 </span>
                 <button
                   type="button"
@@ -595,7 +606,10 @@ export default function BookingWizard({ studios, settings }: Props) {
                         </span>
                       </p>
                       <p className="text-xs text-soft-charcoal mt-1">
-                        {regularCourseOfferLabel()}
+                        {packHoursOfferDescription()}
+                      </p>
+                      <p className="text-[11px] text-soft-charcoal/80 mt-2 leading-relaxed">
+                        {packHoursOfferConditions()}
                       </p>
                     </div>
                     <div className="book-progress-track w-full sm:w-44 sm:flex-none h-2">
@@ -660,11 +674,23 @@ export default function BookingWizard({ studios, settings }: Props) {
                   <p className="text-xs font-semibold uppercase tracking-wider text-soft-charcoal mb-2.5">
                     Durée · min. 1h
                     {isPack10 && (
-                      <span className="normal-case font-medium tracking-normal ml-1">
-                        (identique pour toutes les locations)
+                      <span className="normal-case font-medium tracking-normal ml-1 text-secondary-700">
+                        — fixée à 1 h (pack 10 heures)
                       </span>
                     )}
                   </p>
+                  {isPack10 ? (
+                    <div className="mb-6 rounded-xl border border-secondary-200 bg-secondary-50/80 px-4 py-3">
+                      <p className="text-sm font-semibold text-charcoal">
+                        {formatDurationLabel(PACK_SLOT_DURATION_MINUTES)} ×{" "}
+                        {PACK_SESSION_COUNT} créneaux = {PACK_HOURS_TRANCHE} h
+                      </p>
+                      <p className="text-xs text-soft-charcoal mt-1 leading-relaxed">
+                        L&apos;offre pack ne permet pas des créneaux de 1h30 ou
+                        2h : uniquement 10 heures au total.
+                      </p>
+                    </div>
+                  ) : (
                   <div className="flex flex-wrap gap-2 mb-6">
                     {[60, 90, 120, 150, 180, 240].map((d) => (
                       <button
@@ -705,6 +731,7 @@ export default function BookingWizard({ studios, settings }: Props) {
                         ))}
                     </select>
                   </div>
+                  )}
 
                   <p className="text-xs font-semibold uppercase tracking-wider text-soft-charcoal mb-1.5">
                     Heure de début
@@ -1242,7 +1269,7 @@ export default function BookingWizard({ studios, settings }: Props) {
                     {multiPriceBreakdown &&
                       multiPriceBreakdown.regularCourseDiscountMad > 0 && (
                         <SummaryRow
-                          label={`Remise pack (−${PACK_DISCOUNT_PERCENT} %)`}
+                          label={`Remise (−${PACK_DISCOUNT_PERCENT} % / ${multiPriceBreakdown.discountedHours} h)`}
                           value={`−${formatMad(multiPriceBreakdown.regularCourseDiscountMad)}`}
                         />
                       )}
@@ -1399,7 +1426,7 @@ function SessionCountStep({
     <div className="space-y-5 max-w-3xl mx-auto">
       <BookStepHeader
         title="Choisissez votre formule"
-        description={`Une location à la carte, ou un pack de ${PACK_SESSION_COUNT} créneaux avec remise.`}
+        description="Une location à la carte, ou un pack de 10 heures (10 × 1 h) avec −20 %."
       />
       <div className="flex justify-end -mt-4 mb-2">
         <button
@@ -1456,14 +1483,13 @@ function SessionCountStep({
             <Sparkles className="w-6 h-6" />
           </div>
           <h3 className="font-display font-bold text-xl text-charcoal mb-2">
-            Pack {PACK_SESSION_COUNT} locations
+            {packHoursOfferTitle()}
           </h3>
           <p className="text-sm text-soft-charcoal leading-relaxed">
-            Choisissez {PACK_SESSION_COUNT} créneaux d&apos;un coup —{" "}
-            {regularCourseOfferLabel()}.
+            {packHoursOfferDescription()}
           </p>
-          <p className="mt-3 text-xs font-semibold text-secondary-700 bg-secondary-50 border border-secondary-100 rounded-lg px-3 py-2">
-            −{PACK_DISCOUNT_PERCENT} % sur le pack
+          <p className="mt-3 text-xs text-secondary-800/90 bg-secondary-50 border border-secondary-100 rounded-lg px-3 py-2.5 leading-relaxed text-left">
+            {packHoursOfferConditions()}
           </p>
         </motion.button>
       </motion.div>
@@ -1905,18 +1931,28 @@ function MultiPackageBreakdown({
   return (
     <div className="book-panel-accent px-4 py-3.5 space-y-2 text-sm">
       <div className="flex justify-between gap-3 text-charcoal">
-        <span>Sous-total {b.packageCourseCount} locations</span>
+        <span>
+          Sous-total {b.packageCourseCount} créneaux ({b.totalHours} h)
+        </span>
         <span className="font-semibold tabular-nums">
           {formatMad(b.packageSubtotalMad)}
         </span>
       </div>
       {b.regularCourseDiscountMad > 0 && (
         <div className="flex justify-between gap-3 text-secondary-700">
-          <span>Remise pack (−{PACK_DISCOUNT_PERCENT} %)</span>
+          <span>
+            Remise (−{PACK_DISCOUNT_PERCENT} % sur {b.discountedHours} h)
+          </span>
           <span className="font-semibold tabular-nums">
             −{formatMad(b.regularCourseDiscountMad)}
           </span>
         </div>
+      )}
+      {b.fullPriceHours > 0 && (
+        <p className="text-[11px] text-soft-charcoal leading-relaxed">
+          {b.fullPriceHours} h hors tranche facturée(s) au tarif en vigueur
+          (prochaine remise à {PACK_HOURS_TRANCHE} h cumulées).
+        </p>
       )}
       <div className="flex justify-between gap-3 pt-1.5 border-t border-secondary-200/80 font-display font-bold text-charcoal">
         <span>Total pack</span>

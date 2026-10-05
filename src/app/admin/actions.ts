@@ -7,11 +7,13 @@ import type {
   Booking,
   OpeningHours,
   PaymentMethod,
+  PaymentStatus,
   PeakWindow,
   Settings,
   Studio,
   PromoDiscountType,
 } from "@/lib/booking/types";
+import { resolvePaymentStatus } from "@/lib/booking/types";
 import {
   computeBookingPrice,
   bookingStartUtc,
@@ -84,7 +86,7 @@ function revalidateAdmin() {
   revalidatePath("/admin/income");
 }
 
-/** Admin confirms that payment was received. Sends the confirmation email. */
+/** Admin confirms the reservation (slot held). Payment stays unpaid. */
 export async function confirmBooking(id: string): Promise<ActionResult> {
   try {
     await requireAdmin();
@@ -92,7 +94,30 @@ export async function confirmBooking(id: string): Promise<ActionResult> {
     if (existing.status !== "pending") {
       return { ok: false, error: "Seules les réservations en attente peuvent être confirmées." };
     }
-    const booking = await updateBookingStatus(id, "confirmed");
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from("bookings")
+      .update({
+        status: "confirmed",
+        payment_status: "unpaid",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    let booking: Booking;
+    if (
+      error &&
+      (error.code === "42703" || error.message?.includes("payment_status"))
+    ) {
+      booking = await updateBookingStatus(id, "confirmed");
+    } else if (error || !data) {
+      throw new Error(error?.message ?? "Mise à jour impossible");
+    } else {
+      booking = data as Booking;
+    }
+
     const settings = await fetchSettings();
     const emailResult = await sendBookingConfirmedEmail({
       booking,
@@ -108,7 +133,148 @@ export async function confirmBooking(id: string): Promise<ActionResult> {
     }
     return {
       ok: true,
-      message: `Réservation confirmée. Email de confirmation envoyé à ${existing.customer_email}.`,
+      message: `Réservation confirmée (créneau réservé, non payé). Email envoyé à ${existing.customer_email}.`,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
+  }
+}
+
+/** Mark payment as received — independent from reservation confirmation. */
+export async function markBookingPaid(id: string): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+    const existing = await fetchBookingWithStudio(id);
+    if (!["confirmed", "completed"].includes(existing.status)) {
+      return {
+        ok: false,
+        error:
+          "Confirmez d'abord la réservation avant de marquer le paiement.",
+      };
+    }
+    if (existing.is_internal) {
+      return { ok: false, error: "Les blocages internes n'ont pas de paiement." };
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { error } = await supabase
+      .from("bookings")
+      .update({
+        payment_status: "paid",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (
+      error &&
+      (error.code === "42703" || error.message?.includes("payment_status"))
+    ) {
+      return {
+        ok: false,
+        error:
+          "Exécutez supabase/payment-status-migration.sql dans Supabase.",
+      };
+    }
+    if (error) throw new Error(error.message);
+
+    revalidateAdmin();
+    return {
+      ok: true,
+      message: `Paiement marqué reçu pour ${existing.reference}.`,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
+  }
+}
+
+/** Revert payment to unpaid (correction). */
+export async function markBookingUnpaid(id: string): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+    const existing = await fetchBookingWithStudio(id);
+    if (existing.is_internal) {
+      return { ok: false, error: "Les blocages internes n'ont pas de paiement." };
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { error } = await supabase
+      .from("bookings")
+      .update({
+        payment_status: "unpaid",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (
+      error &&
+      (error.code === "42703" || error.message?.includes("payment_status"))
+    ) {
+      return {
+        ok: false,
+        error:
+          "Exécutez supabase/payment-status-migration.sql dans Supabase.",
+      };
+    }
+    if (error) throw new Error(error.message);
+
+    revalidateAdmin();
+    return {
+      ok: true,
+      message: `Paiement remis à « non payé » pour ${existing.reference}.`,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
+  }
+}
+
+/** Mark all unpaid sessions of a package as paid. */
+export async function markPackagePaid(ids: string[]): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+    if (!ids.length) return { ok: false, error: "Aucune réservation." };
+
+    const rows = await Promise.all(ids.map((id) => fetchBookingWithStudio(id)));
+    const targets = rows.filter(
+      (b) =>
+        !b.is_internal &&
+        ["confirmed", "completed"].includes(b.status) &&
+        resolvePaymentStatus(b) === "unpaid"
+    );
+    if (targets.length === 0) {
+      return {
+        ok: false,
+        error: "Aucune séance impayée dans ce forfait.",
+      };
+    }
+
+    const supabase = getSupabaseAdmin();
+    let marked = 0;
+    for (const b of targets) {
+      const { error } = await supabase
+        .from("bookings")
+        .update({
+          payment_status: "paid",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", b.id);
+      if (
+        error &&
+        (error.code === "42703" || error.message?.includes("payment_status"))
+      ) {
+        return {
+          ok: false,
+          error:
+            "Exécutez supabase/payment-status-migration.sql dans Supabase.",
+        };
+      }
+      if (error) throw new Error(error.message);
+      marked += 1;
+    }
+
+    revalidateAdmin();
+    return {
+      ok: true,
+      message: `${marked} séance${marked > 1 ? "s" : ""} marquée${marked > 1 ? "s" : ""} payée${marked > 1 ? "s" : ""}.`,
     };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erreur" };
@@ -183,8 +349,24 @@ export async function confirmPackageBookings(
       };
     }
 
+    const supabase = getSupabaseAdmin();
     for (const b of pending) {
-      await updateBookingStatus(b.id, "confirmed");
+      const { error } = await supabase
+        .from("bookings")
+        .update({
+          status: "confirmed",
+          payment_status: "unpaid",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", b.id);
+      if (
+        error &&
+        (error.code === "42703" || error.message?.includes("payment_status"))
+      ) {
+        await updateBookingStatus(b.id, "confirmed");
+      } else if (error) {
+        throw new Error(error.message);
+      }
     }
 
     const settings = await fetchSettings();
@@ -531,6 +713,8 @@ export interface ManualBookingInput {
    * studio rates + peak windows for the selected date/time/duration.
    */
   totalPriceMad?: number;
+  /** If true (and not internal), mark payment as received. Default: paid when confirmed. */
+  isPaid?: boolean;
 }
 
 /** Manual booking created by the admin (phone / WhatsApp / internal block). */
@@ -594,6 +778,12 @@ export async function createManualBooking(
     }
 
     const status = isInternal ? "confirmed" : input.status;
+    const paymentStatus: PaymentStatus = isInternal
+      ? "paid"
+      : input.isPaid === true ||
+          (input.isPaid !== false && status === "confirmed")
+        ? "paid"
+        : "unpaid";
     const deadlineMs =
       status === "confirmed"
         ? bookingStartUtc(input.date, input.startMinutes).getTime()
@@ -633,6 +823,7 @@ export async function createManualBooking(
       note: input.note?.trim() || null,
       payment_method: input.paymentMethod,
       status,
+      payment_status: paymentStatus,
       payment_deadline: new Date(deadlineMs).toISOString(),
       admin_note: isInternal
         ? "Blocage interne — hors CA"
@@ -655,12 +846,14 @@ export async function createManualBooking(
       (error.code === "42703" ||
         error.message?.includes("is_internal") ||
         error.message?.includes("activity_type") ||
-        error.message?.includes("activity_description"))
+        error.message?.includes("activity_description") ||
+        error.message?.includes("payment_status"))
     ) {
       const legacy = { ...row };
       delete legacy.is_internal;
       delete legacy.activity_type;
       delete legacy.activity_description;
+      delete legacy.payment_status;
       if (isInternal) {
         legacy.total_price_mad = 0;
         legacy.admin_note = "Blocage interne — hors CA (migration à exécuter)";
@@ -968,6 +1161,8 @@ export interface RecurringManualBookingInput {
   sendEmail: boolean;
   /** Optional per-session price. If omitted, calculated per date. */
   totalPriceMad?: number;
+  /** Mark as paid when creating (default: paid if confirmed). */
+  isPaid?: boolean;
 }
 
 /**
@@ -1073,6 +1268,11 @@ export async function createRecurringManualBookings(
       const totalPriceMad = customPrice ?? calculated.totalMad;
 
       const status = input.status;
+      const paymentStatus: PaymentStatus =
+        input.isPaid === true ||
+        (input.isPaid !== false && status === "confirmed")
+          ? "paid"
+          : "unpaid";
       const deadlineMs =
         status === "confirmed"
           ? bookingStartUtc(date, input.startMinutes).getTime()
@@ -1095,6 +1295,7 @@ export async function createRecurringManualBookings(
         note,
         payment_method: input.paymentMethod,
         status,
+        payment_status: paymentStatus,
         payment_deadline: new Date(deadlineMs).toISOString(),
         admin_note: `Créée manuellement (récurrente) · ${input.months} mois`,
         is_internal: false,
@@ -1115,15 +1316,16 @@ export async function createRecurringManualBookings(
           error.message?.includes("is_internal") ||
           error.message?.includes("package_group_id") ||
           error.message?.includes("package_index") ||
-          error.message?.includes("regular_course_count"))
+          error.message?.includes("regular_course_count") ||
+          error.message?.includes("payment_status"))
       ) {
         const legacy = { ...row };
         delete legacy.is_internal;
+        delete legacy.payment_status;
         if (
           error.message?.includes("package_") ||
           error.code === "42703"
         ) {
-          // retry without optional columns that may be missing
           delete legacy.package_group_id;
           delete legacy.package_index;
           delete legacy.regular_course_count;

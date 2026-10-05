@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 /**
  * GET /api/promo/validate?code=SUMMER20&subtotal=500&courseType=group&package=0
  * Preview promo discount for the booking wizard (server-authoritative).
- * Promo codes are limited to a single group location (not pack 10 / not private).
+ * Promo codes are limited to a single group location (not pack 10 heures / not private).
  */
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code") ?? "";

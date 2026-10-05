@@ -6,7 +6,7 @@ export function normalizePromoCode(code: string): string {
 
 /**
  * Promo codes apply only to a single group location (1 séance).
- * Not valid with pack-10 offers or private courses (−50% already applied).
+ * Not valid with pack 10 heures offers or private courses (−50% already applied).
  */
 export function getPromoEligibilityError(options: {
   courseType: CourseType;
@@ -16,7 +16,7 @@ export function getPromoEligibilityError(options: {
     return "Les codes promo ne s'appliquent pas aux cours privés (−50 % déjà inclus).";
   }
   if (options.isPackage) {
-    return "Les codes promo ne s'appliquent pas au pack 10 locations.";
+    return "Les codes promo ne s'appliquent pas au pack 10 heures.";
   }
   return null;
 }

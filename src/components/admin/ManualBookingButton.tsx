@@ -77,6 +77,7 @@ export default function ManualBookingButton({
   const [customPrice, setCustomPrice] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [status, setStatus] = useState<"pending" | "confirmed">("confirmed");
+  const [isPaid, setIsPaid] = useState(true);
   const [sendEmail, setSendEmail] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -127,6 +128,7 @@ export default function ManualBookingButton({
       setEmail("");
       setPhone("");
       setStatus("confirmed");
+      setIsPaid(true);
       setSendEmail(false);
       setPaymentMethod("cash");
       setCustomPrice("");
@@ -149,6 +151,7 @@ export default function ManualBookingButton({
     setRecurringMonths(3);
     setSendEmail(true);
     setStatus("confirmed");
+    setIsPaid(true);
     setPaymentMethod("cash");
   }
 
@@ -216,6 +219,7 @@ export default function ManualBookingButton({
           status,
           sendEmail,
           totalPriceMad: custom,
+          isPaid,
         });
         if (!result.ok) {
           setError(result.error ?? "Erreur");
@@ -244,6 +248,7 @@ export default function ManualBookingButton({
         sendEmail: isInternal ? false : sendEmail,
         isInternal,
         totalPriceMad: custom,
+        isPaid: isInternal ? true : isPaid,
       });
       if (!result.ok) {
         setError(result.error ?? "Erreur");
@@ -569,16 +574,29 @@ export default function ManualBookingButton({
                       <label className={labelClass}>Statut</label>
                       <select
                         value={status}
-                        onChange={(e) =>
-                          setStatus(e.target.value as "pending" | "confirmed")
-                        }
+                        onChange={(e) => {
+                          const next = e.target.value as "pending" | "confirmed";
+                          setStatus(next);
+                          if (next === "pending") setIsPaid(false);
+                          if (next === "confirmed") setIsPaid(true);
+                        }}
                         className={inputClass}
                       >
-                        <option value="confirmed">Confirmée (payée)</option>
-                        <option value="pending">En attente</option>
+                        <option value="confirmed">Confirmée</option>
+                        <option value="pending">À confirmer</option>
                       </select>
                     </div>
                   </div>
+
+                  <label className="flex items-center gap-2.5 text-sm text-white/75 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isPaid}
+                      onChange={(e) => setIsPaid(e.target.checked)}
+                      className="w-4 h-4 rounded accent-teal-400"
+                    />
+                    Paiement déjà reçu
+                  </label>
 
                   <label className="flex items-center gap-2.5 text-sm text-white/75 cursor-pointer">
                     <input
