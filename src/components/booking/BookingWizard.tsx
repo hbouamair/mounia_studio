@@ -54,12 +54,13 @@ import {
   getEffectiveStudioPrices,
   PACK_DISCOUNT_PERCENT,
   PACK_HOURS_TRANCHE,
-  PACK_SLOT_DURATION_MINUTES,
+  PACK_MAX_HOURS,
+  PACK_SLOT_MAX_COUNT,
   packHoursOfferConditions,
   packHoursOfferDescription,
   packHoursOfferTitle,
   PRIVATE_COURSE_DISCOUNT_PERCENT,
-  REGULAR_COURSE_MIN_COUNT,
+  totalPackHours,
   type BookingSlotInput,
   type MultiSlotPackageBreakdown,
 } from "@/lib/booking/discounts";
@@ -118,7 +119,8 @@ const STEPS = [
   "Coordonnées",
   "Confirmé",
 ];
-const PACK_SESSION_COUNT = REGULAR_COURSE_MIN_COUNT;
+const PACK_MIN_HOURS = PACK_HOURS_TRANCHE;
+const PACK_MAX_SLOTS = PACK_SLOT_MAX_COUNT;
 
 const stepMotion = {
   initial: { opacity: 0, y: 18, scale: 0.985 },
@@ -171,13 +173,27 @@ export default function BookingWizard({ studios, settings }: Props) {
   const wizardRef = useRef<HTMLDivElement>(null);
   const skipInitialScroll = useRef(true);
 
-  const targetSlotCount =
-    sessionMode === "pack10" ? PACK_SESSION_COUNT : 1;
   const isPack10 = sessionMode === "pack10";
   const promoEligible = Boolean(
     courseType &&
       isPromoEligible({ courseType, isPackage: isPack10 })
   );
+  const hoursPerSlot = duration / 60;
+  const packHoursSelected = isPack10
+    ? totalPackHours(confirmedSlots.length, duration)
+    : 0;
+  const packDiscountedHours = isPack10
+    ? Math.floor(packHoursSelected / PACK_HOURS_TRANCHE) * PACK_HOURS_TRANCHE
+    : 0;
+  const packFullPriceHours = isPack10
+    ? Math.round((packHoursSelected - packDiscountedHours) * 100) / 100
+    : 0;
+  const packHoursReady = packHoursSelected >= PACK_MIN_HOURS;
+  const packHoursAtMax = packHoursSelected >= PACK_MAX_HOURS;
+  const canAddPackSlot =
+    isPack10 &&
+    confirmedSlots.length < PACK_MAX_SLOTS &&
+    packHoursSelected + hoursPerSlot <= PACK_MAX_HOURS + 1e-9;
 
   useEffect(() => {
     if (skipInitialScroll.current) {
@@ -190,13 +206,6 @@ export default function BookingWizard({ studios, settings }: Props) {
     const top = el.getBoundingClientRect().top + window.scrollY - navOffset;
     window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   }, [step]);
-
-  useEffect(() => {
-    if (isPack10 && duration !== PACK_SLOT_DURATION_MINUTES) {
-      setDuration(PACK_SLOT_DURATION_MINUTES);
-      setStartMinutes(null);
-    }
-  }, [isPack10, duration]);
 
   const loadAvailability = useCallback(
     async (studioId: number, date: string) => {
@@ -352,7 +361,7 @@ export default function BookingWizard({ studios, settings }: Props) {
   const packageReady =
     !isPack10
       ? singlePriceBreakdown != null
-      : confirmedSlots.length === targetSlotCount && multiPriceBreakdown != null;
+      : packHoursReady && multiPriceBreakdown != null;
 
   const totalBeforePromoMad = isPack10
     ? multiPriceBreakdown?.totalBeforePromoMad ?? null
@@ -379,9 +388,13 @@ export default function BookingWizard({ studios, settings }: Props) {
   }
 
   function handleDurationChange(next: number) {
-    if (isPack10) return; // pack = fixed 1h × 10
+    if (isPack10 && confirmedSlots.length > 0) {
+      const nextHours = totalPackHours(confirmedSlots.length, next);
+      if (nextHours > PACK_MAX_HOURS) return;
+    }
     setDuration(next);
     setStartMinutes(null);
+    setAppliedPromo(null);
   }
 
   function selectStartTime(m: number) {
@@ -390,7 +403,7 @@ export default function BookingWizard({ studios, settings }: Props) {
       setStartMinutes(m);
       return;
     }
-    if (confirmedSlots.length >= targetSlotCount) return;
+    if (!canAddPackSlot) return;
     const exists = confirmedSlots.some(
       (s) => s.date === selectedDate && s.startMinutes === m
     );
@@ -456,7 +469,11 @@ export default function BookingWizard({ studios, settings }: Props) {
         ? [{ date: selectedDate, startMinutes }]
         : [];
 
-    if (slots.length !== targetSlotCount) return;
+    if (isPack10) {
+      if (!packHoursReady || packHoursSelected > PACK_MAX_HOURS) return;
+    } else if (slots.length !== 1) {
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -500,7 +517,7 @@ export default function BookingWizard({ studios, settings }: Props) {
   }
 
   const scheduleComplete = isPack10
-    ? confirmedSlots.length === targetSlotCount
+    ? packHoursReady
     : selectedDate != null && startMinutes !== null;
 
   const detailsValid =
@@ -546,9 +563,6 @@ export default function BookingWizard({ studios, settings }: Props) {
               mode={sessionMode}
               onSelect={(mode) => {
                 setSessionMode(mode);
-                if (mode === "pack10") {
-                  setDuration(PACK_SLOT_DURATION_MINUTES);
-                }
                 resetSchedule();
                 setStep(2);
               }}
@@ -600,14 +614,25 @@ export default function BookingWizard({ studios, settings }: Props) {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-display font-bold text-charcoal text-sm sm:text-base">
-                        Sélectionnez {targetSlotCount} créneaux
+                        Minimum {PACK_MIN_HOURS} h
                         <span className="ml-2 font-semibold text-primary-600 tabular-nums">
-                          {confirmedSlots.length}/{targetSlotCount}
+                          {packHoursSelected} h
                         </span>
                       </p>
                       <p className="text-xs text-soft-charcoal mt-1">
                         {packHoursOfferDescription()}
                       </p>
+                      {packHoursReady && (
+                        <p className="text-xs text-secondary-700 mt-1.5 font-medium">
+                          −{PACK_DISCOUNT_PERCENT} % sur {packDiscountedHours} h
+                          {packFullPriceHours > 0
+                            ? ` · ${packFullPriceHours} h au tarif normal`
+                            : ""}
+                          {!packHoursAtMax
+                            ? " · vous pouvez encore ajouter des heures"
+                            : ""}
+                        </p>
+                      )}
                       <p className="text-[11px] text-soft-charcoal/80 mt-2 leading-relaxed">
                         {packHoursOfferConditions()}
                       </p>
@@ -618,7 +643,9 @@ export default function BookingWizard({ studios, settings }: Props) {
                         style={{
                           width: `${Math.min(
                             100,
-                            (confirmedSlots.length / targetSlotCount) * 100
+                            packHoursSelected < PACK_MIN_HOURS
+                              ? (packHoursSelected / PACK_MIN_HOURS) * 100
+                              : (packHoursSelected / PACK_MAX_HOURS) * 100
                           )}%`,
                         }}
                       />
@@ -646,9 +673,11 @@ export default function BookingWizard({ studios, settings }: Props) {
                     <span className="book-section-icon text-primary-600">
                       <Calendar className="w-4 h-4" aria-hidden />
                     </span>
-                    {isPack10 && confirmedSlots.length < targetSlotCount
-                      ? `Date — location ${confirmedSlots.length + 1}`
-                      : "Date"}
+                    {isPack10 && !packHoursReady
+                      ? `Date — créneau ${confirmedSlots.length + 1}`
+                      : isPack10
+                        ? "Date — ajouter un créneau"
+                        : "Date"}
                   </h3>
                   <MonthCalendar
                     month={month}
@@ -675,23 +704,11 @@ export default function BookingWizard({ studios, settings }: Props) {
                     Durée · min. 1h
                     {isPack10 && (
                       <span className="normal-case font-medium tracking-normal ml-1 text-secondary-700">
-                        — fixée à 1 h (pack 10 heures)
+                        — −{PACK_DISCOUNT_PERCENT} % / {PACK_HOURS_TRANCHE} h
                       </span>
                     )}
                   </p>
-                  {isPack10 ? (
-                    <div className="mb-6 rounded-xl border border-secondary-200 bg-secondary-50/80 px-4 py-3">
-                      <p className="text-sm font-semibold text-charcoal">
-                        {formatDurationLabel(PACK_SLOT_DURATION_MINUTES)} ×{" "}
-                        {PACK_SESSION_COUNT} créneaux = {PACK_HOURS_TRANCHE} h
-                      </p>
-                      <p className="text-xs text-soft-charcoal mt-1 leading-relaxed">
-                        L&apos;offre pack ne permet pas des créneaux de 1h30 ou
-                        2h : uniquement 10 heures au total.
-                      </p>
-                    </div>
-                  ) : (
-                  <div className="flex flex-wrap gap-2 mb-6">
+                  <div className={`flex flex-wrap gap-2 ${isPack10 ? "mb-2" : "mb-6"}`}>
                     {[60, 90, 120, 150, 180, 240].map((d) => (
                       <button
                         key={d}
@@ -731,13 +748,26 @@ export default function BookingWizard({ studios, settings }: Props) {
                         ))}
                     </select>
                   </div>
+                  {isPack10 && (
+                    <p className="text-xs text-soft-charcoal mb-6 leading-relaxed">
+                      Même durée pour chaque créneau · min. {PACK_MIN_HOURS} h
+                      cumulées
+                      {packHoursSelected > 0
+                        ? ` · ${packHoursSelected} h sélectionnée(s)`
+                        : ""}
+                    </p>
                   )}
 
                   <p className="text-xs font-semibold uppercase tracking-wider text-soft-charcoal mb-1.5">
                     Heure de début
-                    {isPack10 && confirmedSlots.length < targetSlotCount && (
+                    {isPack10 && !packHoursReady && (
                       <span className="normal-case font-medium tracking-normal ml-1 text-primary-600">
                         — cliquez pour ajouter
+                      </span>
+                    )}
+                    {isPack10 && packHoursReady && canAddPackSlot && (
+                      <span className="normal-case font-medium tracking-normal ml-1 text-secondary-700">
+                        — minimum atteint, ajoutez encore si besoin
                       </span>
                     )}
                   </p>
@@ -767,10 +797,10 @@ export default function BookingWizard({ studios, settings }: Props) {
                       </span>
                     )}
                   </div>
-                  {isPack10 && confirmedSlots.length >= targetSlotCount ? (
+                  {isPack10 && !canAddPackSlot ? (
                     <p className="text-sm text-secondary-700 bg-secondary-50 border border-secondary-100 rounded-2xl px-4 py-4">
-                      Les {targetSlotCount} créneaux sont sélectionnés. Vous
-                      pouvez en retirer un ci-dessus pour le remplacer.
+                      Maximum {PACK_MAX_HOURS} h atteint. Retirez un créneau ou
+                      réduisez la durée pour en changer.
                     </p>
                   ) : !selectedDate ? (
                     <p className="text-sm text-soft-charcoal py-6 text-center rounded-2xl bg-charcoal/[0.02] border border-dashed border-charcoal/10">
@@ -844,7 +874,13 @@ export default function BookingWizard({ studios, settings }: Props) {
                       <p className="text-xs text-soft-charcoal mt-1">
                         {confirmedSlots.length === 0
                           ? "Choisissez une date puis une heure."
-                          : `${confirmedSlots.length} sur ${targetSlotCount}`}
+                          : `${packHoursSelected} h sélectionnée(s)${
+                              !packHoursReady
+                                ? ` · min. ${PACK_MIN_HOURS} h`
+                                : packDiscountedHours > 0
+                                  ? ` · −${PACK_DISCOUNT_PERCENT} % sur ${packDiscountedHours} h`
+                                  : ""
+                            }`}
                       </p>
                     </div>
 
@@ -858,8 +894,7 @@ export default function BookingWizard({ studios, settings }: Props) {
                       <ul className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-2.5 pr-0.5">
                         {confirmedSlots.map((slot, index) => {
                           const quote = multiPriceBreakdown?.slots[index];
-                          const packReady =
-                            confirmedSlots.length === targetSlotCount;
+                          const packReady = packHoursReady;
                           const slotLabel = formatSelectedSlotLabel(
                             slot,
                             duration,
@@ -913,8 +948,7 @@ export default function BookingWizard({ studios, settings }: Props) {
                       </ul>
                     )}
 
-                    {multiPriceBreakdown &&
-                      confirmedSlots.length === targetSlotCount && (
+                    {multiPriceBreakdown && packHoursReady && (
                         <div className="shrink-0 mt-4 pt-4 border-t border-charcoal/5">
                           <MultiPackageBreakdown
                             breakdown={multiPriceBreakdown}
@@ -1215,7 +1249,7 @@ export default function BookingWizard({ studios, settings }: Props) {
                       label="Formule"
                       value={
                         isPack10
-                          ? `Pack ${PACK_SESSION_COUNT} locations`
+                          ? `Pack ${packHoursSelected} h (−${PACK_DISCOUNT_PERCENT} % / ${packDiscountedHours || PACK_HOURS_TRANCHE} h)`
                           : "1 location"
                       }
                     />
@@ -1426,7 +1460,7 @@ function SessionCountStep({
     <div className="space-y-5 max-w-3xl mx-auto">
       <BookStepHeader
         title="Choisissez votre formule"
-        description="Une location à la carte, ou un pack de 10 heures (10 × 1 h) avec −20 %."
+        description="Une location à la carte, ou un pack à partir de 10 h (−20 % par bloc de 10 h, durée libre)."
       />
       <div className="flex justify-end -mt-4 mb-2">
         <button
@@ -1950,8 +1984,9 @@ function MultiPackageBreakdown({
       )}
       {b.fullPriceHours > 0 && (
         <p className="text-[11px] text-soft-charcoal leading-relaxed">
-          {b.fullPriceHours} h hors tranche facturée(s) au tarif en vigueur
-          (prochaine remise à {PACK_HOURS_TRANCHE} h cumulées).
+          {b.fullPriceHours} h hors bloc facturée(s) au tarif normal (prochain
+          −{PACK_DISCOUNT_PERCENT} % à {b.discountedHours + PACK_HOURS_TRANCHE}{" "}
+          h cumulées).
         </p>
       )}
       <div className="flex justify-between gap-3 pt-1.5 border-t border-secondary-200/80 font-display font-bold text-charcoal">

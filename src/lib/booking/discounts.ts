@@ -8,32 +8,52 @@ export const PRIVATE_STUDIO_NAME = "Studio 3";
 export const PRIVATE_COURSE_DISCOUNT_PERCENT = 50;
 
 /**
- * Pack booking still collects this many créneaux in the wizard.
- * Each créneau is fixed to PACK_SLOT_DURATION_MINUTES so the pack is exactly
- * PACK_HOURS_TRANCHE hours (not 10 × 1h30 / 2h).
+ * Pack booking: normal créneau durations (1 h, 1h30, 2 h…).
+ * Minimum PACK_HOURS_TRANCHE hours total; more hours allowed.
+ * −20 % applies per complete 10-hour block only (pricing rule).
  */
 export const REGULAR_COURSE_MIN_COUNT = 10;
 
-/** Hours per discounted tranche (−20 % on each complete tranche). */
+/** Hours per discounted tranche (−20 % on each complete block). */
 export const PACK_HOURS_TRANCHE = 10;
 
-/** Fixed duration of each créneau in the pack 10 heures (1 hour). */
+/** @deprecated Pack no longer forces 1 h créneaux — kept for compatibility. */
 export const PACK_SLOT_DURATION_MINUTES = 60;
+
+/** Soft cap on number of créneaux in one pack booking. */
+export const PACK_SLOT_MAX_COUNT = 40;
+
+/** Max total hours in one pack booking. */
+export const PACK_MAX_HOURS = 40;
 
 /** Flat discount applied on each complete 10-hour tranche. */
 export const PACK_DISCOUNT_PERCENT = 20;
 
-/** Exact total hours for a valid pack booking. */
-export function packTotalHoursRequired(): number {
+/** Minimum hours required for pack eligibility. */
+export function packMinHours(): number {
   return PACK_HOURS_TRANCHE;
 }
 
-export function isValidPackDurationMinutes(durationMinutes: number): boolean {
-  return durationMinutes === PACK_SLOT_DURATION_MINUTES;
+export function packMaxHours(): number {
+  return PACK_MAX_HOURS;
 }
 
+/** @deprecated Any normal duration is valid; discount uses total hours. */
+export function isValidPackDurationMinutes(_durationMinutes: number): boolean {
+  return true;
+}
+
+/** True when total pack hours are within the allowed range. */
+export function isValidPackHours(totalHours: number): boolean {
+  return totalHours >= PACK_HOURS_TRANCHE && totalHours <= PACK_MAX_HOURS;
+}
+
+/**
+ * @deprecated Prefer isValidPackHours(totalPackHours(...)).
+ * Kept for callers that still think in slot counts at 1 h.
+ */
 export function isValidPackSlotCount(slotCount: number): boolean {
-  return slotCount === REGULAR_COURSE_MIN_COUNT;
+  return isValidPackHours(slotCount);
 }
 
 export function isPrivateStudio(studio: Pick<Studio, "name">): boolean {
@@ -78,8 +98,14 @@ export function getPaidCoursesForPackage(courseCount: number): number {
   return courseCount;
 }
 
+/** @deprecated Prefer isPackHoursEligible(totalHours). */
 export function isPackCourseCount(courseCount: number): boolean {
   return courseCount >= REGULAR_COURSE_MIN_COUNT;
+}
+
+/** True when total hours reach at least one 10-hour discount block. */
+export function isPackHoursEligible(totalHours: number): boolean {
+  return totalHours >= PACK_HOURS_TRANCHE;
 }
 
 export function totalPackHours(
@@ -89,7 +115,10 @@ export function totalPackHours(
   return Math.round(((slotCount * durationMinutes) / 60) * 100) / 100;
 }
 
-/** Complete 10-hour tranches that qualify for −20 %. */
+/**
+ * Complete 10-hour blocks that get −20 %.
+ * e.g. 10→10, 11→10, 12→10, 20→20, 21→20
+ */
 export function discountedPackHours(totalHours: number): number {
   if (totalHours <= 0) return 0;
   return Math.floor(totalHours / PACK_HOURS_TRANCHE) * PACK_HOURS_TRANCHE;
@@ -122,11 +151,11 @@ export function packHoursOfferTitle(): string {
 }
 
 export function packHoursOfferDescription(): string {
-  return `Bénéficiez de −${PACK_DISCOUNT_PERCENT} % sur ${PACK_HOURS_TRANCHE} heures réservées (${REGULAR_COURSE_MIN_COUNT} créneaux d’1 heure).`;
+  return `Bénéficiez de −${PACK_DISCOUNT_PERCENT} % sur chaque tranche de ${PACK_HOURS_TRANCHE} heures réservées (durée libre par créneau).`;
 }
 
 export function packHoursOfferConditions(): string {
-  return `La remise de ${PACK_DISCOUNT_PERCENT} % s'applique sur une tranche cumulée de ${PACK_HOURS_TRANCHE} heures. Le pack comprend exactement ${REGULAR_COURSE_MIN_COUNT} créneaux d’1 heure (pas de créneaux de 1h30 ou 2h).`;
+  return `La remise de ${PACK_DISCOUNT_PERCENT} % s’applique par bloc de ${PACK_HOURS_TRANCHE} heures cumulées. Ex. : 10 h → −${PACK_DISCOUNT_PERCENT} % sur 10 h · 11 h → −${PACK_DISCOUNT_PERCENT} % sur 10 h + 1 h au tarif normal · 20 h → −${PACK_DISCOUNT_PERCENT} % sur 20 h · 21 h → −${PACK_DISCOUNT_PERCENT} % sur 20 h + 1 h au tarif normal. Minimum ${PACK_HOURS_TRANCHE} h au total (créneaux 1 h, 1h30, 2 h…).`;
 }
 
 /** @deprecated Prefer packHoursOfferTitle() */
@@ -197,18 +226,18 @@ export function computeBookingPriceWithDiscounts(options: {
     packageCourseCount,
     options.durationMinutes
   );
-  const discountedHours =
-    hasPackage && isPackCourseCount(packageCourseCount)
-      ? discountedPackHours(totalHours)
-      : 0;
+  const applyPackDiscount =
+    hasPackage && isPackHoursEligible(totalHours);
+  const discountedHours = applyPackDiscount
+    ? discountedPackHours(totalHours)
+    : 0;
   const fullPriceHours =
     Math.round((totalHours - discountedHours) * 100) / 100;
 
   const freeCoursesIncluded = 0;
-  const regularCourseDiscountMad =
-    hasPackage && isPackCourseCount(packageCourseCount)
-      ? packTrancheDiscountMad(packageSubtotalMad, totalHours)
-      : 0;
+  const regularCourseDiscountMad = applyPackDiscount
+    ? packTrancheDiscountMad(packageSubtotalMad, totalHours)
+    : 0;
 
   const totalBeforePromoMad = Math.max(
     0,
@@ -285,8 +314,8 @@ export function computeMultiSlotPackagePrice(options: {
 }): MultiSlotPackageBreakdown {
   const { studio, courseType, slots, durationMinutes, peakWindows } = options;
   const packageCourseCount = slots.length;
-  const applyPackDiscount = isPackCourseCount(packageCourseCount);
   const totalHours = totalPackHours(packageCourseCount, durationMinutes);
+  const applyPackDiscount = isPackHoursEligible(totalHours);
   const discountedHours = applyPackDiscount
     ? discountedPackHours(totalHours)
     : 0;

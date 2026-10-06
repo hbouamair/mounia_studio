@@ -7,8 +7,11 @@ import {
   computeBookingPriceWithDiscounts,
   computeMultiSlotPackagePrice,
   isPrivateStudio,
-  PACK_SLOT_DURATION_MINUTES,
-  REGULAR_COURSE_MIN_COUNT,
+  isValidPackHours,
+  PACK_HOURS_TRANCHE,
+  PACK_MAX_HOURS,
+  PACK_SLOT_MAX_COUNT,
+  totalPackHours,
 } from "@/lib/booking/discounts";
 import {
   MAX_DURATION_MINUTES,
@@ -112,13 +115,11 @@ function validate(
 
   let slots: SlotInput[] = [];
   if (Array.isArray(b.slots) && b.slots.length > 0) {
-    if (b.slots.length > 1) {
-      if (b.slots.length !== REGULAR_COURSE_MIN_COUNT) {
-        return {
-          ok: false,
-          error: `Le pack 10 heures comporte exactement ${REGULAR_COURSE_MIN_COUNT} créneaux d’1 heure.`,
-        };
-      }
+    if (b.slots.length > PACK_SLOT_MAX_COUNT) {
+      return {
+        ok: false,
+        error: `Le pack est limité à ${PACK_SLOT_MAX_COUNT} créneaux.`,
+      };
     }
     for (const slot of b.slots) {
       if (!isValidSlot(slot)) {
@@ -154,16 +155,13 @@ function validate(
 
   const duration = b.durationMinutes as number;
 
-  // Pack 10 heures = exactly 10 × 1h (not 10 × 1h30 / 2h)
+  // Pack: normal créneau durations; −20 % per complete 10 h block on total hours
   if (slots.length > 1) {
-    if (
-      slots.length !== REGULAR_COURSE_MIN_COUNT ||
-      duration !== PACK_SLOT_DURATION_MINUTES
-    ) {
+    const hours = totalPackHours(slots.length, duration);
+    if (!isValidPackHours(hours)) {
       return {
         ok: false,
-        error:
-          "Le pack 10 heures est limité à 10 créneaux d’1 heure (10 h au total).",
+        error: `Le pack nécessite entre ${PACK_HOURS_TRANCHE} et ${PACK_MAX_HOURS} heures au total (durée libre par créneau).`,
       };
     }
   }

@@ -23,7 +23,7 @@ const features = [
   {
     icon: Package,
     title: "FORMULES AVANTAGEUSES",
-    description: "Profitez de −20 % sur le pack 10 heures (10 créneaux d’1 heure)."
+    description: "−20 % par bloc de 10 heures cumulées. Au-delà d’un bloc, le reste est au tarif normal."
   },
   {
     icon: Users,
